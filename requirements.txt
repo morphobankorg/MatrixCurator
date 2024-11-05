@@ -1,0 +1,17 @@
+streamlit
+lxml
+requests
+PyMuPDF
+pymupdf4llm
+google-cloud-vision
+google-cloud-aiplatform
+futures
+PyPDF2
+langchain-community
+langchain
+langchain-core
+langchain-google-genai
+langchain-google-vertexai
+python-docx
+litellm
+python-docx
