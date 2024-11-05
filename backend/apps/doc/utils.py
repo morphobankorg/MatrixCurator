@@ -1,6 +1,8 @@
 import fitz
 import re
 import docx
+import tempfile
+from io import BytesIO
 
 def extract_text_from_pdf_page(page):
     """Extracts and formats text from a single PDF page.
@@ -89,3 +91,26 @@ def convert_pdf_to_markdown(pdf_file, page_numbers):
         return markdown_text
     except Exception as e:
         raise Exception(f"Error parsing PDF document: {e}")
+
+def create_temp_file(document, suffix):
+    """Creates a temporary file with the given document content and suffix.
+
+    Args:
+        document: The document content as bytes or a BytesIO object.
+        suffix: The file suffix (e.g., ".pdf", ".docx").
+
+    Returns:
+        The path to the temporary file.
+        Raises TypeError if the document is not bytes or BytesIO.
+
+    """
+    if not isinstance(document, (bytes, BytesIO)):
+        raise TypeError("Document must be bytes or BytesIO")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+        if isinstance(document, bytes):
+            temp_file.write(document)
+        else: # it's a BytesIO object
+            temp_file.write(document.getvalue())  # Get the bytes from BytesIO
+        temp_path = temp_file.name
+    return temp_path
