@@ -1,8 +1,17 @@
+import tempfile
+from io import BytesIO
+import os
+
+import streamlit as st
+
+from llama_parse import LlamaParse
+from llama_index.core import SimpleDirectoryReader
 import fitz
 import re
 import docx
-import tempfile
-from io import BytesIO
+
+LLAMACLOUD_API_KEY=st.secrets.llamacloud.api_key
+
 
 def extract_text_from_pdf_page(page):
     """Extracts and formats text from a single PDF page.
@@ -72,12 +81,12 @@ def convert_docx_to_markdown(doc_file):
     markdown_text = "\n".join(markdown_lines)
     return markdown_text
     
-def convert_pdf_to_markdown(pdf_file, page_numbers):
+def convert_pdf_to_markdown(pdf_file, pages):
     """Converts specific pages of a PDF file to markdown text.
 
     Args:
         pdf_file: The PDF file object.
-        page_numbers: A list of integers representing the desired page numbers.
+        pages: A list of integers representing the desired page numbers.
 
     Returns:
         The converted markdown text as a string.
@@ -85,7 +94,7 @@ def convert_pdf_to_markdown(pdf_file, page_numbers):
     try:
         pdf_document = fitz.open(stream=pdf_file.read(), filetype="pdf")
         markdown_text = ""
-        for page_num in page_numbers:
+        for page_num in pages:
             page = pdf_document[page_num]
             markdown_text += extract_text_from_pdf_page(page)
         return markdown_text
@@ -114,3 +123,44 @@ def create_temp_file(document, suffix):
             temp_file.write(document.getvalue())  # Get the bytes from BytesIO
         temp_path = temp_file.name
     return temp_path
+
+def parse_with_llamaparse(temp_file, pages=None, file_extension=None):
+    """
+    Extracts and concatenates specified pages from a document using LlamaParse.
+
+    Args:
+        temp_file (str): Path to the document file.
+        pages (list, optional): List of page numbers to extract. Defaults to None.
+        file_extension (str, optional): File extension. Defaults to None.
+
+    Returns:
+        str: Concatenated content of the extracted pages.
+    """
+
+    if not file_extension:
+        file_extension = os.path.splitext(temp_file)[1].lower()
+
+    parser = LlamaParse(result_type="markdown", api_key=LLAMACLOUD_API_KEY)
+    file_extractor = {file_extension: parser}
+
+    try:
+        documents = SimpleDirectoryReader(input_files=[temp_file], file_extractor=file_extractor).load_data()
+    except Exception as e:
+        print(f"Error loading document: {e}")
+        return ""  # Return empty string on error
+
+    parsed_pages = [doc.text for doc in documents]
+
+    extracted_pages = []
+    if pages:
+        try:
+            for page_num in pages:
+                extracted_pages.append(parsed_pages[page_num])
+        except (IndexError, TypeError) as e:
+            print(f"Error extracting specific pages: {e}. Extracting all pages instead.")
+            extracted_pages = parsed_pages  # Fallback to all pages
+    else:
+        extracted_pages = parsed_pages
+
+    concatenated_content = "".join(extracted_pages)
+    return concatenated_content
