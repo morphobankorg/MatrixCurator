@@ -171,7 +171,7 @@ def parse_with_llamaparse(uploaded_file, pages=None, file_extension=None):
 
     if file_extension == '.pdf':
         
-        temp_file, pages = splice_pdf(uploaded_file, pages)
+        uploaded_file, pages = extract_pdf_pages(uploaded_file, pages)
 
     temp_file = create_temp_file(uploaded_file, suffix=file_extension) 
 
@@ -194,55 +194,53 @@ def parse_with_llamaparse(uploaded_file, pages=None, file_extension=None):
     concatenated_content = "".join(extracted_pages)
     return concatenated_content
 
-def splice_pdf(pdf_bytes, pages):
+def extract_pdf_pages(pdf_content, page_numbers):
     """
-    Splices a PDF, returning a new PDF containing only the specified pages.
+    Extracts specific pages from a PDF, creating a new PDF containing only those pages.
 
     Args:
-        pdf_bytes: The PDF content as bytes or a BytesIO object.
-        pages: A list of page numbers to include in the new PDF (0-indexed).
+        pdf_content: The PDF content as bytes or a BytesIO object.
+        page_numbers: A list of 0-indexed page numbers to include in the new PDF.
 
     Returns:
         A tuple containing:
-            - A BytesIO object containing the spliced PDF.
-            - A list representing the new page numbering (always starting from 0).
+            - A BytesIO object containing the extracted PDF pages.
+            - A list of the new page numbers (always starting from 0).
 
     Raises:
-        ValueError: If `pages` contains invalid page numbers.
-        TypeError: If `pdf_bytes` is not bytes or BytesIO.
-
+        ValueError: If `page_numbers` contains invalid page numbers.
+        TypeError: If `pdf_content` is not bytes or BytesIO.
     """
     try:
-        if isinstance(pdf_bytes, bytes):
-            pdf_reader = PdfReader(BytesIO(pdf_bytes))
-        elif isinstance(pdf_bytes, BytesIO):
-            pdf_reader = PdfReader(pdf_bytes)  # No need to create another BytesIO
+        if isinstance(pdf_content, bytes):
+            pdf_reader = PdfReader(BytesIO(pdf_content))
+        elif isinstance(pdf_content, BytesIO):
+            pdf_reader = PdfReader(pdf_content)
         else:
-            raise TypeError("pdf_bytes must be bytes or BytesIO")
+            raise TypeError("pdf_content must be bytes or BytesIO")
 
-        num_pages = len(pdf_reader.pages)
+        total_pages = len(pdf_reader.pages)
 
         # Validate page numbers
-        for page in pages:
-            if page < 0 or page >= num_pages:
-                raise ValueError(f"Invalid page number: {page}. Pages are 0-indexed and must be less than {num_pages}")
-
+        for page_number in page_numbers:
+            if page_number < 0 or page_number >= total_pages:
+                raise ValueError(
+                    f"Invalid page number: {page_number}. Pages are 0-indexed and must be less than {total_pages}"
+                )
 
         pdf_writer = PdfWriter()
-        new_pages = []  # Keep track of the new page numbers
+        extracted_page_numbers = []
 
-        for i, page_num in enumerate(pages):
-            pdf_writer.add_page(pdf_reader.pages[page_num])
-            new_pages.append(i)
+        for i, page_number in enumerate(page_numbers):
+            pdf_writer.add_page(pdf_reader.pages[page_number])
+            extracted_page_numbers.append(i)
 
+        output_pdf_buffer = BytesIO()
+        pdf_writer.write(output_pdf_buffer)
+        output_pdf_buffer.seek(0)
 
-        output_buffer = BytesIO()
-        pdf_writer.write(output_buffer)
-        output_buffer.seek(0) # Reset buffer to the beginning
+        return output_pdf_buffer, extracted_page_numbers
 
-        return output_buffer, new_pages
-
-
-    except Exception as e:  # Catch other potential PyPDF2 errors
+    except Exception as e:
         print(f"An error occurred: {e}")
-        return None, None # Or raise the exception if you prefer
+        return None, None  # Or raise the exception if you prefer
