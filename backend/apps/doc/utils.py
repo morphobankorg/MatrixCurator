@@ -10,6 +10,9 @@ import fitz
 import re
 import docx
 
+from PyPDF2 import PdfReader, PdfWriter
+
+
 LLAMACLOUD_API_KEY=st.secrets.llamacloud.api_key
 
 
@@ -124,19 +127,19 @@ def create_temp_file(document, suffix):
         temp_path = temp_file.name
     return temp_path
 
-def parse_with_llamaparse(temp_file, pages=None, file_extension=None):
+
+def _llamaparse_worker(temp_file, file_extension=None):
     """
-    Extracts and concatenates specified pages from a document using LlamaParse.
+    Uses LlamaParse to parse a given file and returns the parsed markdown text.
 
     Args:
         temp_file (str): Path to the document file.
-        pages (list, optional): List of page numbers to extract. Defaults to None.
         file_extension (str, optional): File extension. Defaults to None.
 
     Returns:
-        str: Concatenated content of the extracted pages.
+        list: A list of strings, where each string represents the parsed content of a page.
+          Returns an empty list on error.
     """
-
     if not file_extension:
         file_extension = os.path.splitext(temp_file)[1].lower()
 
@@ -144,19 +147,45 @@ def parse_with_llamaparse(temp_file, pages=None, file_extension=None):
     file_extractor = {file_extension: parser}
 
     try:
-        documents = SimpleDirectoryReader(input_files=[temp_file], file_extractor=file_extractor).load_data()
+        documents = SimpleDirectoryReader(
+            input_files=[temp_file], file_extractor=file_extractor
+        ).load_data()
+        return [doc.text for doc in documents]
     except Exception as e:
         print(f"Error loading document: {e}")
-        return ""  # Return empty string on error
+        return []
 
-    parsed_pages = [doc.text for doc in documents]
+
+def parse_with_llamaparse(uploaded_file, pages=None, file_extension=None):
+    """
+    Extracts and concatenates specified pages from a document by leveraging the llamaparse_worker.
+
+    Args:
+        temp_file (str): Path to the document file.
+        pages (list, optional): List of page numbers to extract (0-indexed). Defaults to None.
+        file_extension (str, optional): File extension. Defaults to None.
+
+    Returns:
+        str: Concatenated content of the extracted pages.  Returns an empty string if there's an error or no pages are parsed.
+    """
+
+    if file_extension == '.pdf':
+        
+        temp_file, pages = splice_pdf(uploaded_file, pages)
+
+    temp_file = create_temp_file(uploaded_file, suffix=file_extension) 
+
+    parsed_pages = _llamaparse_worker(temp_file, file_extension)
+
+    if not parsed_pages:
+        return ""  # Handle the case where llamaparse_worker returns an empty list due to error
 
     extracted_pages = []
     if pages:
         try:
             for page_num in pages:
                 extracted_pages.append(parsed_pages[page_num])
-        except (IndexError, TypeError) as e:
+        except IndexError as e:  # Only catch IndexError, TypeError shouldn't occur anymore
             print(f"Error extracting specific pages: {e}. Extracting all pages instead.")
             extracted_pages = parsed_pages  # Fallback to all pages
     else:
@@ -164,3 +193,56 @@ def parse_with_llamaparse(temp_file, pages=None, file_extension=None):
 
     concatenated_content = "".join(extracted_pages)
     return concatenated_content
+
+def splice_pdf(pdf_bytes, pages):
+    """
+    Splices a PDF, returning a new PDF containing only the specified pages.
+
+    Args:
+        pdf_bytes: The PDF content as bytes or a BytesIO object.
+        pages: A list of page numbers to include in the new PDF (0-indexed).
+
+    Returns:
+        A tuple containing:
+            - A BytesIO object containing the spliced PDF.
+            - A list representing the new page numbering (always starting from 0).
+
+    Raises:
+        ValueError: If `pages` contains invalid page numbers.
+        TypeError: If `pdf_bytes` is not bytes or BytesIO.
+
+    """
+    try:
+        if isinstance(pdf_bytes, bytes):
+            pdf_reader = PdfReader(BytesIO(pdf_bytes))
+        elif isinstance(pdf_bytes, BytesIO):
+            pdf_reader = PdfReader(pdf_bytes)  # No need to create another BytesIO
+        else:
+            raise TypeError("pdf_bytes must be bytes or BytesIO")
+
+        num_pages = len(pdf_reader.pages)
+
+        # Validate page numbers
+        for page in pages:
+            if page < 0 or page >= num_pages:
+                raise ValueError(f"Invalid page number: {page}. Pages are 0-indexed and must be less than {num_pages}")
+
+
+        pdf_writer = PdfWriter()
+        new_pages = []  # Keep track of the new page numbers
+
+        for i, page_num in enumerate(pages):
+            pdf_writer.add_page(pdf_reader.pages[page_num])
+            new_pages.append(i)
+
+
+        output_buffer = BytesIO()
+        pdf_writer.write(output_buffer)
+        output_buffer.seek(0) # Reset buffer to the beginning
+
+        return output_buffer, new_pages
+
+
+    except Exception as e:  # Catch other potential PyPDF2 errors
+        print(f"An error occurred: {e}")
+        return None, None # Or raise the exception if you prefer

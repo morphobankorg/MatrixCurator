@@ -1,6 +1,5 @@
 from backend.apps.doc.utils import convert_pdf_to_markdown
 from backend.apps.doc.utils import convert_docx_to_markdown
-from backend.apps.doc.utils import create_temp_file
 from backend.apps.doc.utils import parse_with_llamaparse
 
 def convert_document_to_markdown(uploaded_file, pages=None, parser='llamaparse'):
@@ -17,8 +16,7 @@ def convert_document_to_markdown(uploaded_file, pages=None, parser='llamaparse')
         file_extension = "." + uploaded_file.name.lower().split('.')[-1]
 
         if parser == 'llamaparse':
-            temp_file = create_temp_file(uploaded_file, suffix=file_extension)
-            return parse_with_llamaparse(temp_file, pages=pages)
+            return parse_with_llamaparse(uploaded_file, pages=pages, file_extension=file_extension)
         elif file_extension == '.docx' and parser == 'python-docx':
             return convert_docx_to_markdown(uploaded_file)
         elif file_extension == '.pdf' and parser == 'pyMuPDF':
