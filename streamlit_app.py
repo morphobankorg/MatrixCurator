@@ -21,7 +21,7 @@ uploaded_character_list = st.file_uploader("Upload Character List file")
 st.subheader("Define Character Information")
 st.write("Please specify the number of characters and their corresponding states that you'd like me to extract.")
 
-selected_parser = st.selectbox("Choose the Gemini model for inference:",("llamaparse", "pyMuPDF", "python-docx"))
+selected_parser = st.selectbox("Choose the Gemini model for inference:",("llamaparse", "pyMuPDF", "python-docx", "plain-txt"))
 
 opt_col1, opt_col2 = st.columns(2)
 with opt_col1:
@@ -65,7 +65,7 @@ with st.sidebar:
             else:
                 page_range = None
                 
-            raw_characters = convert_document_to_markdown(uploaded_character_list, page_range)
+            raw_characters = convert_document_to_markdown(uploaded_character_list, page_range, selected_parser)
 
             initialize_database(process_name, raw_characters, num_characters)
 

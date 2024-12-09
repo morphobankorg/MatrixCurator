@@ -1,6 +1,7 @@
 import tempfile
 from io import BytesIO
 import os
+import io
 
 import streamlit as st
 
@@ -243,4 +244,29 @@ def extract_pdf_pages(pdf_content, page_numbers):
 
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None, None  # Or raise the exception if you prefer
+        return None, None  # Or raise the exception if you prefer 
+    
+
+from io import StringIO
+
+def convert_txt_to_markdown(uploaded_file):
+    """
+    Extracts text content from a .txt file uploaded via Streamlit.
+
+    Args:
+        uploaded_file (streamlit.runtime.uploaded_file_manager.UploadedFile): The uploaded .txt file.
+
+    Returns:
+        str: The text content of the file.  Returns an empty string if there's an error.
+    """
+    try:
+        # Use StringIO to handle the UploadedFile like a file object
+        stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))  # Decode assuming UTF-8 encoding
+
+        # Read the entire content 
+        text = stringio.read()
+        return text
+
+    except Exception as e:
+        print(f"Error reading file: {e}")  #  Handle errors gracefully
+        return ""  # or raise the exception if you want to stop execution
