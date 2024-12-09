@@ -12,16 +12,16 @@ from backend.apps.utils.main import get_sanitized_filename
 from backend.apps.xml.main import parse_xml, validate_xml, build_character_state_labels
 from backend.apps.common.utils import parse_page_range_string
 # Layout and file upload
-st.title("MorphoBank PBDB PDF to NEXUS File Generator")
+st.title("MorphoBank PBDB to NEXUS File Generator")
 
-st.subheader("Upload Character List PDF")
+st.subheader("Upload Character List")
 st.write("Upload the document containing your character list. For best results, have the file open alongside this app.")
 uploaded_character_list = st.file_uploader("Upload Character List file")
 
 st.subheader("Define Character Information")
 st.write("Please specify the number of characters and their corresponding states that you'd like me to extract.")
 
-selected_parser = st.selectbox("Choose the Gemini model for inference:",("llamaparse", "pyMuPDF", "python-docx", "plain-txt"))
+selected_parser = st.selectbox("Choose the model for parsing the document:",("llamaparse", "pyMuPDF", "python-docx", "plain-txt"))
 
 opt_col1, opt_col2 = st.columns(2)
 with opt_col1:
