@@ -14,4 +14,6 @@ langchain-google-genai
 langchain-google-vertexai
 python-docx
 litellm
-python-docx
+llama-index-core 
+llama-parse 
+llama-index-readers-file 

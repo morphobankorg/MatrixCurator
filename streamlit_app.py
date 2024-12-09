@@ -21,6 +21,8 @@ uploaded_character_list = st.file_uploader("Upload Character List file")
 st.subheader("Define Character Information")
 st.write("Please specify the number of characters and their corresponding states that you'd like me to extract.")
 
+selected_parser = st.selectbox("Choose the Gemini model for inference:",("llamaparse", "pyMuPDF", "python-docx", "plain-txt"))
+
 opt_col1, opt_col2 = st.columns(2)
 with opt_col1:
     num_characters = st.number_input("How many characters are there?", step=1)
@@ -35,7 +37,7 @@ with opt_col2:
 st.subheader("Select Inference Model")
 st.write("Which Gemini model should I use to process your data?")
 selected_model = st.selectbox("Choose the Gemini model for inference:",("Gemini 1.5 Flash", "Gemini 1.5 Pro"))
-ai_model = {"Gemini 1.5 Flash": "gemini/gemini-1.5-flash", "Gemini 1.5 Pro": "gemini/gemini-1.5-pro"}[selected_model]
+ai_model = {"Gemini 1.5 Flash": "gemini/gemini-1.5-flash-002", "Gemini 1.5 Pro": "gemini/gemini-1.5-pro-002"}[selected_model]
 
 st.subheader("Upload Empty NEXUS File")
 st.write("Please upload the Nexus file with the missing character state labels that need to be processed.")
@@ -62,8 +64,8 @@ with st.sidebar:
                 page_range = parse_page_range_string(target_pages)
             else:
                 page_range = None
-            
-            raw_characters = convert_document_to_markdown(uploaded_character_list, page_range)
+                
+            raw_characters = convert_document_to_markdown(uploaded_character_list, page_range, selected_parser)
 
             initialize_database(process_name, raw_characters, num_characters)
 
