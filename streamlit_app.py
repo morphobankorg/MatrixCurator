@@ -42,7 +42,8 @@ ai_model = {"Gemini 1.5 Flash": "gemini/gemini-1.5-flash-002", "Gemini 1.5 Pro":
 st.subheader("Upload Empty NEXUS File")
 st.write("Please upload the Nexus file with the missing character state labels that need to be processed.")
 uploaded_nexus_file = st.file_uploader("Upload NEXUS File", type="nex")
-nfilename, nfile_extension = os.path.splitext(uploaded_nexus_file.name)
+if uploaded_nexus_file is not None:
+    nfilename, nfile_extension = os.path.splitext(uploaded_nexus_file.name)
 
 character_state_view = st.empty()
 
