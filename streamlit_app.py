@@ -36,8 +36,8 @@ with opt_col2:
 
 st.subheader("Select Inference Model")
 st.write("Which Gemini model should I use to process your data?")
-selected_model = st.selectbox("Choose the Gemini model for inference:",("Gemini 1.5 Flash", "Gemini 1.5 Pro"))
-ai_model = {"Gemini 1.5 Flash": "gemini/gemini-1.5-flash-002", "Gemini 1.5 Pro": "gemini/gemini-1.5-pro-002"}[selected_model]
+selected_model = st.selectbox("Choose the Gemini model for inference:",("Gemini 2.0 Flash", "Gemini 1.5 Flash", "Gemini 1.5 Pro"))
+ai_model = {"Gemini 1.5 Flash": "gemini/gemini-1.5-flash", "Gemini 2.0 Flash": "gemini/gemini-2.0-flash", "Gemini 1.5 Pro": "gemini/gemini-1.5-pro" }[selected_model]
 
 st.subheader("Upload Empty NEXUS File")
 st.write("Please upload the Nexus file with the missing character state labels that need to be processed.")
