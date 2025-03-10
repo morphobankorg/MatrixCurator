@@ -3,24 +3,14 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import litellm
-from langchain_google_vertexai import VertexAI
-import vertexai
-from google.oauth2 import service_account
-
+from langchain_google_genai import GoogleGenerativeAI
 from langchain.evaluation import load_evaluator
 
 
 GEMINI_API_KEY = st.secrets.gemini.api_key
 
-# Initialize the client
-VERTEXAI_PROJECT = st.secrets.vertexai.project
-VERTEXAI_LOCATION = st.secrets.vertexai.location
-GOOGLE_CREDENTIALS = service_account.Credentials.from_service_account_info(st.secrets["gcs_connections"])
-
-vertexai.init(project=VERTEXAI_PROJECT, location=VERTEXAI_LOCATION, credentials=GOOGLE_CREDENTIALS)
-
 #Config
-llm = VertexAI(model_name="gemini-1.5-pro")
+llm = GoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=GEMINI_API_KEY)
 
 # Your API request limit per minute
 API_LIMIT_PER_MINUTE = 1000
