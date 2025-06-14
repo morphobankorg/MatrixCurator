@@ -1,12 +1,13 @@
 import os
 from llama_parse import LlamaParse
 from llama_index.core import SimpleDirectoryReader
+import streamlit as st
 from .exceptions import log_execution, handle_exceptions
 
 
 class LlamaParseService:
     def __init__(self):
-        self.api_key = os.getenv("LLAMACLOUD_API_KEY")
+        self.api_key = os.getenv("LLAMACLOUD_API_KEY") or st.secrets["LLAMACLOUD_API_KEY"]
         self.parser = LlamaParse(result_type="markdown", api_key=self.api_key)
     @log_execution
     @handle_exceptions
