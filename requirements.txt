@@ -1,5 +1,4 @@
 streamlit
-lxml
 requests
 PyMuPDF
 pymupdf4llm
@@ -7,13 +6,11 @@ google-cloud-vision
 google-cloud-aiplatform
 futures
 PyPDF2
-langchain-community
-langchain
-langchain-core
-langchain-google-genai
-langchain-google-vertexai
 python-docx
-litellm
 llama-index-core 
-llama-parse 
+llama-parse
 llama-index-readers-file 
+setuptools
+langfuse
+docx2pdf
+sentry-sdk
