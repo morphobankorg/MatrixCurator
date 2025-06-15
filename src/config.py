@@ -6,8 +6,8 @@ models={
         "Gemini 1.5 Pro": "gemini-1.5-pro-002",
     },
     "defaults": {
-        "extraction": "Gemini 2.5 Flash",
-        "evaluation": "Gemini 2.5 Pro"
+        "extraction": "Gemini 2.0 Flash",
+        "evaluation": "Gemini 1.5 Pro"
     }
 }
 

@@ -18,10 +18,10 @@ if article_upload is not None:
     article_filename, article_file_extension = os.path.splitext(article_upload.name)
 
     if article_file_extension == ".pdf":
-        selected_parser = st.selectbox("Select Document Parsing Method",("llamaparse", "pyMuPDF", "Gemini"))
+        selected_parser = st.selectbox("Select Document Parsing Method",("Gemini", "llamaparse", "pyMuPDF"))
 
     elif article_file_extension == ".docx" or ".doc":
-        selected_parser = st.selectbox("Select Document Parsing Method",("llamaparse", "python-docx", "Gemini"))
+        selected_parser = st.selectbox("Select Document Parsing Method",("Gemini", "llamaparse", "python-docx"))
 
     elif article_file_extension == ".txt":
         selected_parser = st.selectbox("Select Document Parsing Method",("plain-txt"))
