@@ -38,9 +38,6 @@ This project aims to:
 - **Improve data quality** by minimizing transcription errors and standardizing formats.
 - **Enhance data reusability** by producing complete, FAIR-compliant NEXUS files.
 
-  
-*(Placeholder for a screenshot of the Streamlit App interface)*
-
 ## Key Features
 
 - **Automated Data Extraction**: Uses Google's Gemini family of LLMs to intelligently parse and extract character names and their corresponding states from text.
@@ -147,7 +144,7 @@ You are a helpful and precise research assistant. Focus on extracting the reques
 
 **B. Prompt Name: `extraction_prompt`**
 
-``text
+```text
 Here is a section of text from a phylogenetic research paper. Please extract the character descriptions and their corresponding states for character index: {character_index}
 
 Previous attempts to extract information for this character index have yielded these incorrect results:
