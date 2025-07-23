@@ -38,9 +38,6 @@ This project aims to:
 - **Improve data quality** by minimizing transcription errors and standardizing formats.
 - **Enhance data reusability** by producing complete, FAIR-compliant NEXUS files.
 
-  
-*(Placeholder for a screenshot of the Streamlit App interface)*
-
 ## Key Features
 
 - **Automated Data Extraction**: Uses Google's Gemini family of LLMs to intelligently parse and extract character names and their corresponding states from text.
