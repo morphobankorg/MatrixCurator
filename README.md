@@ -2,9 +2,14 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://matrixcurator.streamlit.app/)
 
 An AI-powered tool to automate the extraction of morphological character data from scientific publications and generate standardized, FAIR-compliant NEXUS files for phylogenetic analysis.
+
+| Deployment      | Link                                                                                                             | Purpose                     |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **Primary App** | [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://matrixcurator.streamlit.app/) | Main application link.      |
+| **Mirror**      | [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://matrixcurator-zkxwfebfdvwlkueytkffxj.streamlit.app/) | Backup link for redundancy. |
+
 
 ---
 
