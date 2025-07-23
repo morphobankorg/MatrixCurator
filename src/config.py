@@ -1,13 +1,12 @@
 models={
     "models": {
-        "Gemini 2.5 Pro": "gemini-2.5-pro-preview-06-05",
-        "Gemini 2.5 Flash": "gemini-2.5-flash-preview-05-20",
+        "Gemini 2.5 Pro": "gemini-2.5-pro",
+        "Gemini 2.5 Flash": "gemini-2.5-flash",
         "Gemini 2.0 Flash": "gemini-2.0-flash",
-        "Gemini 1.5 Pro": "gemini-1.5-pro-002",
     },
     "defaults": {
         "extraction": "Gemini 2.0 Flash",
-        "evaluation": "Gemini 1.5 Pro"
+        "evaluation": "Gemini 2.5 Pro"
     }
 }
 
