@@ -1,9 +1,7 @@
-<<<<<<< ours
-
 # MatrixCurator
 
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://matrixcurator.streamlit.app/)
 
 An AI-powered tool to automate the extraction of morphological character data from scientific publications and generate standardized, FAIR-compliant NEXUS files for phylogenetic analysis.
@@ -267,7 +265,7 @@ Contributions are welcome! Please feel free to open an issue or submit a pull re
 
 ## License
 
-This project is distributed under the MIT License. See `LICENSE` for more information.
+This project is distributed under the GNU GPL v3 License. See `LICENSE` for more information.
 
 ## Acknowledgments
 
@@ -281,8 +279,3 @@ This project is distributed under the MIT License. See `LICENSE` for more inform
 - Brooke L. Long-Fox (Corresponding Author) - [blongfox@morphobank.org](mailto:blongfox@morphobank.org)
 
 Project Link: [https://github.com/MorphoEx/morphoex](https://github.com/MorphoEx/matrixcurator)
-||||||| ancestor
-# morphoex
-=======
-# MatrixCurator
->>>>>>> theirs
