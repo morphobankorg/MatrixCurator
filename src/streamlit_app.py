@@ -5,7 +5,7 @@ from utils import parse_page_range_string
 from parser import ParserService
 from llm import ExtractionEvaluationService
 from nex import NexService
-from src.config.main import settings
+from config.main import settings
 
 st.title("MorphoBank PBDB to NEXUS File Generator")
 
