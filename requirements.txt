@@ -13,3 +13,4 @@ llama-index-readers-file
 setuptools
 langfuse
 sentry-sdk
+pydantic_settings
