@@ -34,10 +34,13 @@ with apt_col1:
         step=1)
     
 with apt_col2:
-    if article_upload and article_file_extension != ".docx" and selected_parser != "Gemini":
-        target_pages = st.text_input(
-            "Specify Page Range(s) for Character States (e.g., 3-4, 7)", 
-            placeholder="3-4")
+    target_pages = ""
+    if article_upload:
+        # Show the input unless the file is a ".docx" AND the parser is "Gemini"
+        if not (article_file_extension == ".docx" and selected_parser == "Gemini"):
+            target_pages = st.text_input(
+                "Specify Page Range(s) for Character States (e.g., 3-4, 7)", 
+                placeholder="3-4")
     
 zero_indexed = st.checkbox("Character numbering in article is zero-indexed (starts from 0)")
 
