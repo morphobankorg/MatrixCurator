@@ -42,7 +42,7 @@ class ParserService:
             
             elif self.parser == "Gemini":
                 pdf_service = PDFService()
-                return pdf_service.create_from_docx(doc_file=file, from_page=pages[0], to_page=pages[-1])
+                return pdf_service.create_from_docx(doc_file=file)
             
             elif self.parser == "llamaparse":
                 temp_docx_file = create_temp_file(file, file_extension)
