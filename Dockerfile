@@ -25,6 +25,12 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
+# Install system dependencies required for LibreOffice
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libreoffice \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /app
 
