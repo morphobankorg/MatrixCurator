@@ -8,6 +8,7 @@ import random
 from typing import Optional, Dict, Any
 from .external_service import GeminiService
 from .exceptions import log_execution, handle_exceptions
+from config import settings
 
 
 class ExtractionEvaluationService:
@@ -93,7 +94,7 @@ class ExtractionEvaluationService:
     @log_execution
     @handle_exceptions
     def run_cycle(self, progress_callback=None) -> tuple[list[dict], list[int]]:
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=settings.max_workers) as executor:
             futures = []
             start_index = 0 if self.zero_indexed else 1
             end_index = self.total_characters

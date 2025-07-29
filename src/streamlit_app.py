@@ -5,7 +5,7 @@ from utils import parse_page_range_string
 from parser import ParserService
 from llm import ExtractionEvaluationService
 from nex import NexService
-from config import model_names, models_dict, default_extraction_idx, default_evaluation_idx
+from config import settings
 
 st.title("MorphoBank PBDB to NEXUS File Generator")
 
@@ -48,16 +48,16 @@ llm_col1, llm_col2 = st.columns(2)
 with llm_col1:
     extraction_model = st.selectbox(
         "Select Model for Character Extraction",
-        model_names,
-        index=default_extraction_idx,
+        settings.model_names,
+        index=settings.default_extraction_idx,
         key="extraction_model"
     )
 
 with llm_col2:
     evaluation_model = st.selectbox(
         "Select Model for Evaluation",
-        model_names,
-        index=default_evaluation_idx,
+        settings.model_names,
+        index=settings.default_evaluation_idx,
         key="evaluation_model"
     )
 
@@ -68,8 +68,8 @@ if nexus_upload is not None:
 character_state_view = st.empty()
 
 # After model selection dropdowns
-extraction_model_id = models_dict[extraction_model]  # Convert to API ID
-evaluation_model_id = models_dict[evaluation_model]  # Convert to API ID
+extraction_model_id = settings.MODELS[extraction_model]  # Convert to API ID
+evaluation_model_id = settings.MODELS[evaluation_model]  # Convert to API ID
 
 with st.sidebar:
 

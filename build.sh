@@ -2,8 +2,8 @@
 
 # A script to build, tag, and push a Docker image to a container registry.
 #
-# Usage: ./docker-publish.sh <tag>
-# Example: ./docker-publish.sh v1.2.3
+# Usage: ./build.sh <tag>
+# Example: ./build.sh v1.2.3
 
 # --- Configuration ---
 # Set your registry, owner (or namespace), and image name here.
