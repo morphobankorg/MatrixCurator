@@ -76,7 +76,7 @@ with st.sidebar:
 
             pages = parse_page_range_string(target_pages)
 
-            st.write("Step 1/4: Parsing document content...")
+            st.write("Step 1/4: Parsing article...")
             parser_service = ParserService(selected_parser)
             parsed_article = parser_service.parse(file=article_upload, pages=pages)
 

@@ -1,13 +1,15 @@
 [project]
 name = "MatrixCurator"
-version = "2025.6.1"
+version = "2025.7.2"
 authors = [
     { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
 ]
+dependencies = ["streamlit", "requests", "PyMuPDF", "pymupdf4llm", "google-cloud-vision", "google-cloud-aiplatform", "futures", "PyPDF2", "python-docx", "llama-index-core", "llama-parse", "llama-index-readers-file", "setuptools", "langfuse", "docx2pdf", "sentry-sdk"]
+requires-python = ">=3.12"
 
 [build-system]
-requires = ["setuptools>=64.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.setuptools.packages.find]
 where = ["src"]

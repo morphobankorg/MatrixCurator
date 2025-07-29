@@ -44,6 +44,11 @@ class ParserService:
                 pdf_service = PDFService(pdf_file=file)
                 return pdf_service.create_from_docx(doc_file=file, from_page=pages[0], to_page=pages[-1])
             
+            elif self.parser == "llamaparse":
+                temp_docx_file = create_temp_file(file, file_extension)
+                llamaparse_service = LlamaParseService()
+                return llamaparse_service.parse(file=temp_docx_file, file_extension=file_extension)
+            
         elif file_extension == ".txt":
             return convert_txt_to_markdown(file)
             
