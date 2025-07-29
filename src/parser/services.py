@@ -14,7 +14,7 @@ class ParserService:
         
     @log_execution
     @handle_exceptions
-    def parse(self, file, pages: list) -> str:
+    def parse(self, file, pages: list | None = []) -> str:
 
         file_extension = "." + file.name.lower().split('.')[-1]
 

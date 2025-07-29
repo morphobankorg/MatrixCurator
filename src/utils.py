@@ -1,6 +1,6 @@
 import re
 
-def parse_page_range_string(page_range_string):
+def parse_page_range_string(page_range_string: str | None):
     """Parses a string representing a page range into a list of page numbers.
     
     Args:
@@ -13,6 +13,8 @@ def parse_page_range_string(page_range_string):
     Raises:
         ValueError: If the input string is not a valid page range.
     """
+    if not page_range_string:
+        return []
     match = re.search(r"^\s*(\d+)\s*([-,\s]+\s*(\d+)\s*)?$", page_range_string)
     if match:
         start_page = int(match.group(1))
@@ -22,4 +24,4 @@ def parse_page_range_string(page_range_string):
         else:
             raise ValueError("Invalid page range: start page must be less than or equal to end page.")
     else:
-        raise ValueError("Invalid page range format.")
+        []
