@@ -72,7 +72,7 @@ class PDFService:
     
     @log_execution
     @handle_exceptions
-    def create_from_docx(self, doc_file: Union[bytes, BytesIO], from_page: int, to_page: int) -> BytesIO:
+    def create_from_docx(self, doc_file: Union[bytes, BytesIO]) -> BytesIO:
         """Converts a DOCX file to PDF using LibreOffice headless mode."""
         
         temp_docx_path = None
@@ -114,6 +114,5 @@ class PDFService:
             if temp_docx_path and os.path.exists(temp_docx_path):
                 os.remove(temp_docx_path)
 
-        # 6. Proceed with splitting the converted PDF
-        split_pdf = self.split_by_range(pdf_file=pdf_bytes, from_page=from_page, to_page=to_page)
-        return split_pdf
+        # 6. Return the full PDF content as a BytesIO object
+        return BytesIO(pdf_bytes)
