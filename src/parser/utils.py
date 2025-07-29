@@ -4,9 +4,8 @@ import tempfile
 from io import BytesIO
 from PyPDF2 import PdfReader, PdfWriter
 from typing import Union
-# REMOVE: from docx2pdf import convert
-import subprocess  # ADD THIS
-import os          # ADD THIS
+import subprocess
+import os
 from .exceptions import log_execution, handle_exceptions
 
 @log_execution
