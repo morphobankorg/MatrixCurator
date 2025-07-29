@@ -12,5 +12,4 @@ llama-parse
 llama-index-readers-file 
 setuptools
 langfuse
-docx2pdf
 sentry-sdk
