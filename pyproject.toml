@@ -1,6 +1,6 @@
 [project]
 name = "MatrixCurator"
-version = "2025.7.3"
+version = "2025.7.4"
 authors = [
     { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
 ]
