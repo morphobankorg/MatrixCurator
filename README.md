@@ -8,7 +8,7 @@ An AI-powered tool to automate the extraction of morphological character data fr
 | Deployment      | Link                                                                                                             | Purpose                     |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------- |
 | **Primary App** | [![Tailscale Funnel](https://img.shields.io/badge/Tailscale-Funnel-blue.svg?logo=tailscale)](https://matrixcurator.tortoise-butterfly.ts.net/) | Main application link. |
-| **Mirror**      | [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://matrixcurator-zkxwfebfdvwlkueytkffxj.streamlit.app/) | Backup link for redundancy. |
+| **Mirror**      | [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://matrixcurator.streamlit.app/) | Backup link for redundancy. |
 
 
 ---
