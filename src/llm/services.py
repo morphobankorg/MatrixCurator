@@ -8,7 +8,7 @@ import random
 from typing import Optional, Dict, Any
 from .external_service import GeminiService
 from .exceptions import log_execution, handle_exceptions
-from config import settings
+from src.config.main import settings
 
 
 class ExtractionEvaluationService:
