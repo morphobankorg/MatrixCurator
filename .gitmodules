@@ -4,3 +4,6 @@
 [submodule "third_party/docs"]
 	path = third_party/docs
 	url = https://github.com/langchain-ai/docs
+[submodule "third_party/langfuse-docs"]
+	path = third_party/langfuse-docs
+	url = https://github.com/langfuse/langfuse-docs
