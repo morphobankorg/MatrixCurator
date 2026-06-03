@@ -4,7 +4,7 @@ version = "2025.7.4"
 authors = [
     { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
 ]
-dependencies = ["streamlit", "requests", "PyMuPDF", "pymupdf4llm", "google-cloud-vision", "google-cloud-aiplatform", "futures", "PyPDF2", "python-docx", "llama-index-core", "llama-parse", "llama-index-readers-file", "setuptools", "langfuse", "sentry-sdk", "pydantic-settings>=2.10.1", "fastapi>=0.136.3", "uvicorn>=0.48.0", "langgraph>=1.2.4", "pydantic>=2.13.4", "pandas>=2.2.3", "litellm>=1.87.0", "pytest>=9.0.3", "pytest-cov>=7.1.0", "pytest-xdist>=3.8.0", "pytest-asyncio>=1.4.0", "httpx>=0.28.1", "python-multipart>=0.0.30"]
+dependencies = ["streamlit", "requests", "PyMuPDF", "pymupdf4llm", "google-cloud-vision", "google-cloud-aiplatform", "futures", "PyPDF2", "python-docx", "llama-index-core", "llama-parse", "llama-index-readers-file", "setuptools", "langfuse", "sentry-sdk", "pydantic-settings>=2.10.1", "fastapi>=0.136.3", "uvicorn>=0.48.0", "langgraph>=1.2.4", "pydantic>=2.13.4", "pandas>=2.2.3", "litellm>=1.87.0", "pytest>=9.0.3", "pytest-cov>=7.1.0", "pytest-xdist>=3.8.0", "pytest-asyncio>=1.4.0", "httpx>=0.28.1", "python-multipart>=0.0.30", "posthog>=7.17.0", "structlog>=25.5.0", "opentelemetry-api>=1.42.1", "opentelemetry-sdk>=1.42.1", "opentelemetry-exporter-otlp>=1.42.1"]
 requires-python = ">=3.12"
 
 [build-system]
