@@ -3,6 +3,12 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
+from src.config.logging import setup_logging, get_logger
+from src.integrations.posthog import capture_event
+
+# Initialize logging and telemetry
+setup_logging(app_name="streamlit")
+logger = get_logger(__name__)
 
 API_URL = "http://localhost:8000/api/v1"
 
@@ -31,8 +37,11 @@ with col1:
             if response.status_code == 200:
                 st.session_state.parsed_context = response.json()["text"]
                 st.success("Document parsed successfully!")
+                capture_event("document_parsed", {"file_type": doc_file.type})
+                logger.info("Document parsed successfully", file_type=doc_file.type)
             else:
                 st.error(f"Error parsing document: {response.text}")
+                logger.error("Error parsing document", error=response.text)
 
 with col2:
     st.header("2. Upload NEXUS")
@@ -64,8 +73,11 @@ if "parsed_context" in st.session_state and "original_nexus" in st.session_state
                         for err in data["errors"]:
                             st.warning(err)
                     st.success("Extraction complete!")
+                    capture_event("characters_extracted", {"num_indices": len(indices), "model": model_provider})
+                    logger.info("Characters extracted", num_indices=len(indices), model=model_provider)
                 else:
                     st.error(f"Error extracting data: {response.text}")
+                    logger.error("Error extracting data", error=response.text)
 
 if "extracted_states" in st.session_state and st.session_state.extracted_states:
     st.header("4. Review & Edit")
@@ -112,5 +124,8 @@ if "extracted_states" in st.session_state and st.session_state.extracted_states:
                     mime="text/plain"
                 )
                 st.success("NEXUS generated successfully!")
+                capture_event("nexus_generated")
+                logger.info("NEXUS generated successfully")
             else:
                 st.error(f"Error generating NEXUS: {response.text}")
+                logger.error("Error generating NEXUS", error=response.text)
