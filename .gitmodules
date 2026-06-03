@@ -1,3 +1,6 @@
 [submodule "third_party/langgraph"]
 	path = third_party/langgraph
 	url = https://github.com/langchain-ai/langgraph
+[submodule "third_party/docs"]
+	path = third_party/docs
+	url = https://github.com/langchain-ai/docs
