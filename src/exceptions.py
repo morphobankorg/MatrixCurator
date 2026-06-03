@@ -1,43 +1,19 @@
-import logging
-from functools import wraps
-import sentry_sdk
+class MatrixCuratorError(Exception):
+    """Base exception for all MatrixCurator errors."""
+    pass
 
-# Configure basic logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+class DocumentParseError(MatrixCuratorError):
+    """Raised when a document cannot be parsed."""
+    pass
 
-# 1. Execution logging decorator
-def log_execution(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        logger.info(f"Function '{func.__name__}' started")
-        result = func(*args, **kwargs)
-        logger.info(f"Function '{func.__name__}' completed")
-        return result
-    return wrapper
+class NexusFormatError(MatrixCuratorError):
+    """Raised when a NEXUS file is malformed or cannot be processed."""
+    pass
 
-# 2. Sentry exception handler decorator
-def handle_exceptions(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            if sentry_sdk:
-                # Capture exception to Sentry
-                sentry_sdk.capture_exception(e)
-                
-                # Add custom context to the event
-                with sentry_sdk.configure_scope() as scope:
-                    scope.set_context("function_args", {
-                        "positional": args,
-                        "keyword": kwargs
-                    })
-                    scope.set_tag("function_name", func.__name__)
+class LLMServiceError(MatrixCuratorError):
+    """Raised when an LLM service fails."""
+    pass
 
-            # Log locally as well
-            logger.error(f"Exception in '{func.__name__}': {str(e)}")
-            
-            # Re-raise the original exception
-            raise
-    return wrapper
+class ContextLengthExceededError(MatrixCuratorError):
+    """Raised when the context exceeds the LLM's maximum context window."""
+    pass

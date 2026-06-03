@@ -14,3 +14,14 @@ setuptools
 langfuse
 sentry-sdk
 pydantic_settings
+fastapi
+uvicorn
+langgraph
+pydantic
+pandas
+litellm
+pytest
+pytest-cov
+pytest-xdist
+pytest-asyncio
+httpx

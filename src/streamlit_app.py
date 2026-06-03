@@ -1,134 +1,116 @@
+# src/streamlit_app.py
 import streamlit as st
-import os
-import time
-from utils import parse_page_range_string
-from parser import ParserService
-from llm import ExtractionEvaluationService
-from nex import NexService
-from config.main import settings
+import requests
+import pandas as pd
+import json
 
-st.title("MorphoBank PBDB to NEXUS File Generator")
+API_URL = "http://localhost:8000/api/v1"
 
-st.write("To begin, please provide your research article and the NEXUS file you wish to update.")
+st.set_page_config(page_title="MatrixCurator", layout="wide")
 
-article_upload = st.file_uploader("Upload Research Article (.pdf, .docx, .txt)")
+st.title("MatrixCurator")
 
-if article_upload is not None:
+# Sidebar for configuration
+st.sidebar.header("Configuration")
+model_provider = st.sidebar.selectbox(
+    "Model Provider",
+    ["gemini/gemini-1.5-pro", "gemini/gemini-1.5-flash", "openai/gpt-4o", "anthropic/claude-3-5-sonnet-20240620"]
+)
 
-    article_filename, article_file_extension = os.path.splitext(article_upload.name)
+# Main area
+col1, col2 = st.columns(2)
 
-    if article_file_extension == ".pdf":
-        selected_parser = st.selectbox("Select Document Parsing Method",("Gemini", "llamaparse", "pyMuPDF"))
-
-    elif article_file_extension == ".docx" or ".doc":
-        selected_parser = st.selectbox("Select Document Parsing Method",("Gemini", "llamaparse", "python-docx"))
-
-    elif article_file_extension == ".txt":
-        selected_parser = st.selectbox("Select Document Parsing Method",("plain-txt"))
-
-apt_col1, apt_col2 = st.columns(2)
-
-with apt_col1:
-    total_characters = st.number_input(
-        "Total Number of Morphological Characters", 
-        step=1)
+with col1:
+    st.header("1. Upload Document")
+    doc_file = st.file_uploader("Upload PDF, DOCX, or TXT", type=["pdf", "docx", "txt"])
     
-with apt_col2:
-    target_pages = ""
-    if article_upload:
-        # Show the input unless the file is a ".docx" AND the parser is "Gemini"
-        if not (article_file_extension == ".docx" and selected_parser == "Gemini"):
-            target_pages = st.text_input(
-                "Specify Page Range(s) for Character States (e.g., 3-4, 7)", 
-                placeholder="3-4")
-    
-zero_indexed = st.checkbox("Character numbering in article is zero-indexed (starts from 0)")
-
-llm_col1, llm_col2 = st.columns(2)
-with llm_col1:
-    extraction_model = st.selectbox(
-        "Select Model for Character Extraction",
-        settings.model_names,
-        index=settings.default_extraction_idx,
-        key="extraction_model"
-    )
-
-with llm_col2:
-    evaluation_model = st.selectbox(
-        "Select Model for Evaluation",
-        settings.model_names,
-        index=settings.default_evaluation_idx,
-        key="evaluation_model"
-    )
-
-nexus_upload = st.file_uploader("Upload NEXUS File to Update (.nex)", type="nex")
-if nexus_upload is not None:
-    nexus_filename, nexus_file_extension = os.path.splitext(nexus_upload.name)
-
-character_state_view = st.empty()
-
-# After model selection dropdowns
-extraction_model_id = settings.MODELS[extraction_model]  # Convert to API ID
-evaluation_model_id = settings.MODELS[evaluation_model]  # Convert to API ID
-
-with st.sidebar:
-
-    if st.button("Generate Updated NEXUS File"):
-        start_time = time.time()
-
-        with st.status("Processing your files... Please wait.", expanded=True) as status:
-
-            pages = parse_page_range_string(target_pages)
-
-            st.write("Step 1/4: Parsing article...")
-            parser_service = ParserService(selected_parser)
-            parsed_article = parser_service.parse(file=article_upload, pages=pages)
-
-            st.write("Step 2/4: Initializing AI models and context cache...")
-            if selected_parser == "Gemini":
-                extraction_evaluation_service = ExtractionEvaluationService(
-                    extraction_model=extraction_model_id, 
-                    evaluation_model=evaluation_model_id,
-                    total_characters=total_characters,
-                    context_upload=parsed_article,
-                    zero_indexed=zero_indexed
-                )
+    if doc_file and st.button("Parse Document"):
+        with st.spinner("Parsing..."):
+            files = {"file": (doc_file.name, doc_file.getvalue(), doc_file.type)}
+            response = requests.post(f"{API_URL}/document/parse", files=files)
+            if response.status_code == 200:
+                st.session_state.parsed_context = response.json()["text"]
+                st.success("Document parsed successfully!")
             else:
-                extraction_evaluation_service = ExtractionEvaluationService(
-                    extraction_model=extraction_model_id, 
-                    evaluation_model=evaluation_model_id,
-                    total_characters=total_characters,
-                    context=parsed_article,
-                    zero_indexed=zero_indexed
+                st.error(f"Error parsing document: {response.text}")
+
+with col2:
+    st.header("2. Upload NEXUS")
+    nex_file = st.file_uploader("Upload NEXUS file", type=["nex", "nexus"])
+    if nex_file:
+        st.session_state.original_nexus = nex_file.getvalue().decode("utf-8")
+        st.success("NEXUS file loaded.")
+
+if "parsed_context" in st.session_state and "original_nexus" in st.session_state:
+    st.header("3. Extract Characters")
+    char_indices_str = st.text_input("Character Indices (comma-separated)", "1, 2, 3")
+    
+    if st.button("Extract"):
+        indices = [int(x.strip()) for x in char_indices_str.split(",") if x.strip().isdigit()]
+        if not indices:
+            st.warning("Please enter valid character indices.")
+        else:
+            with st.spinner("Extracting..."):
+                payload = {
+                    "context": st.session_state.parsed_context,
+                    "character_indices": indices,
+                    "model_provider": model_provider
+                }
+                response = requests.post(f"{API_URL}/agent/extract", json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    st.session_state.extracted_states = data["extracted_states"]
+                    if data.get("errors"):
+                        for err in data["errors"]:
+                            st.warning(err)
+                    st.success("Extraction complete!")
+                else:
+                    st.error(f"Error extracting data: {response.text}")
+
+if "extracted_states" in st.session_state and st.session_state.extracted_states:
+    st.header("4. Review & Edit")
+    
+    # Convert to DataFrame for editing
+    df_data = []
+    for state in st.session_state.extracted_states:
+        df_data.append({
+            "character_index": state.get("character_index"),
+            "character_name": state.get("character_name"),
+            "states": json.dumps(state.get("states", {}))
+        })
+    
+    df = pd.DataFrame(df_data)
+    edited_df = st.data_editor(df, num_rows="dynamic")
+    
+    if st.button("Generate Updated NEXUS"):
+        with st.spinner("Generating..."):
+            # Convert back to list of dicts
+            final_states = []
+            for _, row in edited_df.iterrows():
+                try:
+                    states_dict = json.loads(row["states"])
+                except:
+                    states_dict = {}
+                final_states.append({
+                    "character_index": int(row["character_index"]),
+                    "character_name": str(row["character_name"]),
+                    "states": states_dict
+                })
+                
+            payload = {
+                "original_nexus": st.session_state.original_nexus,
+                "extracted_states": final_states
+            }
+            
+            response = requests.post(f"{API_URL}/document/nexus", json=payload)
+            if response.status_code == 200:
+                updated_nexus = response.json()["updated_nexus"]
+                st.download_button(
+                    label="Download Updated NEXUS",
+                    data=updated_nexus,
+                    file_name="updated_matrix.nex",
+                    mime="text/plain"
                 )
-
-            st.write("Step 3/4: Extracting and evaluating character states...")
-            progress_bar = st.progress(0)
-
-            def update_progress(progress):
-                progress_bar.progress(min(int(progress * 100), 100))
-
-            character_states_list, failed_indexes = extraction_evaluation_service.run_cycle(progress_callback=update_progress)
-
-            st.write("Step 4/4: Updating NEXUS file with extracted states...")
-            nex_service = NexService(nexus_upload)
-            updated_nexus_file = nex_service.update(character_states_list=character_states_list)
-
-            end_time = time.time()
-            total_time = str(round((end_time-start_time),1))
-
-            if len(failed_indexes) > 0:
-                # Check if there are still invalid batches
-                    status.update(label="Partial success: Some characters require review before finalization.", state="complete", expanded=True)
-                    character_state_view.warning(f"Action required: The following character(s) could not be automatically processed and need your review. Problematic character indices: {failed_indexes}")
-            else:  
-                status.update(label="Processing finished! The updated NEXUS file has been generated.", state="complete", expanded=False)
-
-        # Create a download button
-
-        st.info(f"Processing completed in {total_time} seconds.")
-        download_button = st.download_button(
-            label="Download Updated NEXUS File",
-            data=updated_nexus_file,
-            file_name=nexus_filename + "_KEY" + ".nex",
-        )
+                st.success("NEXUS generated successfully!")
+            else:
+                st.error(f"Error generating NEXUS: {response.text}")
