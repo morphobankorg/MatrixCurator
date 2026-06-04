@@ -1,0 +1,36 @@
+[project]
+name = "matrixcurator"
+version = "2025.7.4"
+authors = [
+    { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "PyMuPDF",
+    "pymupdf4llm",
+    "google-cloud-vision",
+    "google-cloud-aiplatform",
+    "PyPDF2",
+    "python-docx",
+    "llama-index-core",
+    "llama-parse",
+    "llama-index-readers-file",
+    "langfuse",
+    "sentry-sdk",
+    "pydantic-settings>=2.10.1",
+    "langgraph>=1.2.4",
+    "pydantic>=2.13.4",
+    "litellm>=1.87.0",
+    "posthog>=7.17.0",
+    "structlog>=25.5.0",
+    "opentelemetry-api>=1.42.1",
+    "opentelemetry-sdk>=1.42.1",
+    "opentelemetry-exporter-otlp>=1.42.1"
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.setuptools.packages.find]
+where = ["src"]

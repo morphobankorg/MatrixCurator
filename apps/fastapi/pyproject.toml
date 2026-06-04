@@ -1,0 +1,28 @@
+[project]
+name = "matrixcurator-api"
+version = "2025.7.4"
+authors = [
+    { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.136.3",
+    "uvicorn>=0.48.0",
+    "python-multipart>=0.0.30",
+    "matrixcurator"
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pdm.dev-dependencies]
+test = [
+    "httpx>=0.28.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "src"

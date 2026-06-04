@@ -1,0 +1,16 @@
+[project]
+name = "matrixcurator-streamlit"
+version = "2025.7.4"
+authors = [
+    { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "streamlit",
+    "pandas>=2.2.3",
+    "matrixcurator"
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
