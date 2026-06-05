@@ -4,3 +4,6 @@
 [submodule "third_party/langfuse-docs"]
 	path = third_party/langfuse-docs
 	url = https://github.com/langfuse/langfuse-docs
+[submodule "third_party/docling"]
+	path = third_party/docling
+	url = https://github.com/docling-project/docling
