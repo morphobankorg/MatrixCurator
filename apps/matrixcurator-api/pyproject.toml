@@ -26,3 +26,6 @@ test = [
 
 [tool.pytest.ini_options]
 pythonpath = "src"
+
+[tool.pdm.build]
+excludes = ["third_party/**"]

@@ -17,3 +17,23 @@ distribution = false
 
 [tool.pdm.workspace]
 members = ["packages/*", "apps/*"]
+
+[tool.pdm.build]
+excludes = ["third_party/**"]
+
+# Ignore in Ruff (Linter & Formatter)
+[tool.ruff]
+exclude = ["third_party"]
+
+# Ignore in Mypy (Type Checker)
+[tool.mypy]
+exclude = ["^third_party/"]
+
+# Ignore in Pytest (Test Runner)
+[tool.pytest.ini_options]
+norecursedirs = ["third_party"]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.1.0",
+]

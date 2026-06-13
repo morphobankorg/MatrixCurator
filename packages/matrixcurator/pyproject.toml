@@ -25,7 +25,8 @@ dependencies = [
     "structlog>=25.5.0",
     "opentelemetry-api>=1.42.1",
     "opentelemetry-sdk>=1.42.1",
-    "opentelemetry-exporter-otlp>=1.42.1"
+    "opentelemetry-exporter-otlp>=1.42.1",
+    "docling"
 ]
 
 [build-system]
@@ -34,3 +35,11 @@ build-backend = "pdm.backend"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[dependency-groups]
+dev = [
+    "mkinit>=1.2.0",
+]
+
+[tool.pdm.build]
+excludes = ["third_party/**"]
