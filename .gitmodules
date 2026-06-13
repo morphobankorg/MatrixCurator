@@ -7,3 +7,6 @@
 [submodule "third_party/docling"]
 	path = third_party/docling
 	url = https://github.com/docling-project/docling
+[submodule "third_party/dspy"]
+	path = third_party/dspy
+	url = https://github.com/stanfordnlp/dspy
