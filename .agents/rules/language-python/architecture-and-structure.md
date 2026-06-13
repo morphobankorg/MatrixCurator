@@ -5,6 +5,7 @@ globs: *.py
 # Architecture and Structure Standards
 
 ## 🎯 Directives
+- ALWAYS follow the standard FastAPI project structure with separated `api`, `core`, `database`, `services`, `repositories`, `utils`, and `schemas` directories, or use a modular `src/modules` layout.
 - ALWAYS separate domain logic from infrastructure concerns (Domain-Driven Design).
 - ALWAYS distinguish between Entities (identity equality, mutable) and Value Objects (value equality, immutable).
 - ALWAYS use `@dataclass(frozen=True)` for Value Objects.
@@ -50,6 +51,77 @@ def allocate(orderid: str, sku: str, qty: int, uow: AbstractUnitOfWork) -> str:
         batchref = product.allocate(line)
         uow.commit()
     return batchref
+```
+
+```text
+project_name/
+├── requirements.txt       # Python dependencies
+├── Dockerfile.txt         # Docker containerfile
+├── README.md              # Project documentation
+├── .gitignore             # Define what to ignore during version control
+├── src/                   # Source code directory
+│   ├── main.py            # Entry point for your FastAPI application
+│   ├── __init__.py        # Initialize the src package
+│   ├── api/               # API endpoints
+│   │   ├── __init__.py    # Initialize the api package
+│   │   ├── v1/            # Versioned API endpoints
+│   │   │   ├── __init__.py
+│   │   │   ├── endpoints.py  # Define API routes and handlers
+│   │   │   └── dependencies.py # Dependency injection
+│   ├── config/            # Application configurations
+│   │   ├── __init__.py
+│   │   └── main.py        # Pydantic settings
+│   ├── core/              # Core functionality
+│   │   ├── __init__.py
+│   │   ├── security.py    # Security related utilities
+│   ├── database/          # Database related files
+│   │   ├── __init__.py
+│   │   ├── session.py     # Database session handling
+│   │   └── migrations/    # Database migrations
+│   ├── services/          # Business logic layer
+│   │   ├── __init__.py
+│   │   ├── user_service.py # Example service
+│   ├── repositories/      # Database logic layer
+│   │   ├── __init__.py
+│   │   ├── user_repository.py # Example repository
+│   ├── utils/             # Utility functions
+│   │   ├── __init__.py
+│   │   └── logging.py     # Logging configuration
+│   └── schemas/           # Pydantic schemas
+│       ├── __init__.py
+│       ├── pydantic_schema.py
+```
+
+Or using a modular `src` layout:
+
+```text
+project_name/
+├── requirements.txt       # Python dependencies
+├── Dockerfile.txt         # Docker containerfile
+├── README.md              # Project documentation
+├── .gitignore             # Define what to ignore during version control
+├── src/                   # Source code directory
+│   ├── main.py            # Entry point for your FastAPI application
+│   ├── config/            # Application configurations
+│   │   ├── __init__.py
+│   │   └── main.py        # Pydantic settings
+│   ├── core/              # Core functionality (security, etc.)
+│   │   ├── __init__.py
+│   │   └── security.py
+│   ├── utils/             # Utility functions
+│   │   ├── __init__.py
+│   │   └── logging.py     # Logging configuration
+│   └── modules/           # Feature-based modules
+│       ├── __init__.py
+│       └── users/         # Example module
+│           ├── __init__.py
+│           ├── router.py  # API endpoints for users
+│           ├── schemas.py # Pydantic schemas
+│           ├── models.py  # ORM models
+│           ├── service.py # Business logic
+│           └── repository/ # Database access
+│               ├── __init__.py
+│               └── user.py
 ```
 
 ### ❌ DON'T
