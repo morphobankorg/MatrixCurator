@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default"]
+groups = ["default", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:71d26e7d639d4505a6be313972e4fe2e527240bed202e6a5a76cfe0ae62caa29"
+content_hash = "sha256:fd555a4ac217040eba9d474dc8dce222ba116c312f1c3563415b4ed00bdee39e"
 
 [[metadata.targets]]
 requires_python = ">=3.12"
@@ -657,14 +657,6 @@ summary = ""
 files = [
     {file = "fsspec-2026.4.0-py3-none-any.whl", hash = "sha256:11ef7bb35dab8a394fde6e608221d5cf3e8499401c249bebaeaad760a1a8dec2"},
     {file = "fsspec-2026.4.0.tar.gz", hash = "sha256:301d8ac70ae90ef3ad05dcf94d6c3754a097f9b5fe4667d2787aa359ec7df7e4"},
-]
-
-[[package]]
-name = "futures"
-version = "3.4.0"
-summary = ""
-files = [
-    {file = "futures-3.4.0.tar.gz", hash = "sha256:3ec8ceecd1b85547aa7539c1db8d6b2a6245405de427e4780809b6f56a18fdd2"},
 ]
 
 [[package]]
@@ -1790,6 +1782,19 @@ summary = ""
 files = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
+]
+
+[[package]]
+name = "mkinit"
+version = "1.2.0"
+requires_python = ">=3.8"
+summary = "Autogenerate __init__.py files"
+dependencies = [
+    "ubelt>=1.3.6",
+]
+files = [
+    {file = "mkinit-1.2.0-py3-none-any.whl", hash = "sha256:172755988cdcdc5212d0b76b586ec4765c2bff9ae41266a93f5f4b962c3d2def"},
+    {file = "mkinit-1.2.0.tar.gz", hash = "sha256:4b776ca991ccedbb202b079bd3e573d753121baa2a4f330324247325c9a1d346"},
 ]
 
 [[package]]
@@ -3398,6 +3403,16 @@ summary = ""
 files = [
     {file = "tzdata-2026.2-py2.py3-none-any.whl", hash = "sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7"},
     {file = "tzdata-2026.2.tar.gz", hash = "sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10"},
+]
+
+[[package]]
+name = "ubelt"
+version = "1.4.2"
+requires_python = ">=3.8"
+summary = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
+files = [
+    {file = "ubelt-1.4.2-py3-none-any.whl", hash = "sha256:6cdbcbba75cd7c3e1ef9556a13b7c0e29a55f67cb454f022a981e42808f2b06e"},
+    {file = "ubelt-1.4.2.tar.gz", hash = "sha256:40322cf3bb59c05b7567222b10bd0d553c6abc463cd480c23ea3dbcf2ef332fb"},
 ]
 
 [[package]]
