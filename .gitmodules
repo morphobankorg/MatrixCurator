@@ -1,11 +1,11 @@
-[submodule ".agents/skills/langfuse-docs/modules/langfuse-docs"]
-	path = .agents/skills/langfuse-docs/modules/langfuse-docs
+[submodule ".agents/skills/langfuse/modules/langfuse-docs"]
+	path = .agents/skills/langfuse/modules/langfuse-docs
 	url = https://github.com/langfuse/langfuse-docs
 [submodule ".agents/skills/langgraph/modules/langgraph"]
 	path = .agents/skills/langgraph/modules/langgraph
 	url = https://github.com/langchain-ai/langgraph
-[submodule ".agents/skills/docs/modules/docs"]
-	path = .agents/skills/docs/modules/docs
+[submodule ".agents/skills/langchain/modules/docs"]
+	path = .agents/skills/langchain/modules/docs
 	url = https://github.com/langchain-ai/docs
 [submodule ".agents/skills/dspy/modules/dspy"]
 	path = .agents/skills/dspy/modules/dspy
@@ -13,3 +13,6 @@
 [submodule ".agents/skills/python-logging/modules/python-logging"]
 	path = .agents/skills/python-logging/modules/python-logging
 	url = https://github.com/morphobankorg/python-logging
+[submodule ".agents/skills/litellm/modules/litellm-docs"]
+	path = .agents/skills/litellm/modules/litellm-docs
+	url = https://github.com/BerriAI/litellm-docs
