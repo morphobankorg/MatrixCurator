@@ -193,3 +193,11 @@ backend/data/app.db
 /backend/data
 *.db
 *secrets.toml*
+
+# Architect
+plans/
+
+# Rune
+.rune/*
+!.rune/config
+!.rune/index
