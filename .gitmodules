@@ -10,3 +10,6 @@
 [submodule ".agents/skills/dspy/modules/dspy"]
 	path = .agents/skills/dspy/modules/dspy
 	url = https://github.com/stanfordnlp/dspy
+[submodule ".agents/skills/python-logging/modules/python-logging"]
+	path = .agents/skills/python-logging/modules/python-logging
+	url = https://github.com/morphobankorg/python-logging
