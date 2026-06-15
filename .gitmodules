@@ -1,3 +1,6 @@
 [submodule ".agents/skills/langfuse-docs/modules/langfuse-docs"]
 	path = .agents/skills/langfuse-docs/modules/langfuse-docs
 	url = https://github.com/langfuse/langfuse-docs
+[submodule ".agents/skills/langgraph/modules/langgraph"]
+	path = .agents/skills/langgraph/modules/langgraph
+	url = https://github.com/langchain-ai/langgraph
