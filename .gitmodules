@@ -16,3 +16,6 @@
 [submodule ".agents/skills/litellm/modules/litellm-docs"]
 	path = .agents/skills/litellm/modules/litellm-docs
 	url = https://github.com/BerriAI/litellm-docs
+[submodule ".agents/skills/docling/modules/docling"]
+	path = .agents/skills/docling/modules/docling
+	url = https://github.com/docling-project/docling
