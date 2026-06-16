@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch
 from matrixcurator.integrations.sentry import init_sentry, DEFAULT_SENTRY_DSN
 
@@ -6,9 +5,9 @@ from matrixcurator.integrations.sentry import init_sentry, DEFAULT_SENTRY_DSN
 @patch("matrixcurator.integrations.sentry.settings")
 def test_sentry_default_maintainer_telemetry(mock_settings, mock_sentry_init):
     """Test Case: Default Maintainer Telemetry (Opt-Out = False, No User Keys)"""
-    mock_settings.TELEMETRY_OPT_OUT = False
-    mock_settings.SENTRY_DSN = None
-    mock_settings.DEBUG = False
+    mock_settings.telemetry_opt_out = False
+    mock_settings.sentry_dsn = None
+    mock_settings.debug = False
 
     init_sentry("test_app")
 
@@ -23,8 +22,8 @@ def test_sentry_default_maintainer_telemetry(mock_settings, mock_sentry_init):
 @patch("matrixcurator.integrations.sentry.settings")
 def test_sentry_complete_opt_out(mock_settings, mock_sentry_init):
     """Test Case: Complete Opt-Out (Opt-Out = True, No User Keys)"""
-    mock_settings.TELEMETRY_OPT_OUT = True
-    mock_settings.SENTRY_DSN = None
+    mock_settings.telemetry_opt_out = True
+    mock_settings.sentry_dsn = None
 
     init_sentry("test_app")
 
@@ -34,9 +33,9 @@ def test_sentry_complete_opt_out(mock_settings, mock_sentry_init):
 @patch("matrixcurator.integrations.sentry.settings")
 def test_sentry_byok_override(mock_settings, mock_sentry_init):
     """Test Case: BYOK Override (Opt-Out = True, User Keys Provided)"""
-    mock_settings.TELEMETRY_OPT_OUT = True
-    mock_settings.SENTRY_DSN = "https://user-dsn@sentry.io/1"
-    mock_settings.DEBUG = False
+    mock_settings.telemetry_opt_out = True
+    mock_settings.sentry_dsn = "https://user-dsn@sentry.io/1"
+    mock_settings.debug = False
 
     init_sentry("test_app")
 
