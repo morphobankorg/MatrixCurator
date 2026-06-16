@@ -4,7 +4,7 @@ version = "2025.7.4"
 authors = [
     { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "PyMuPDF",
     "pymupdf4llm",
@@ -26,7 +26,11 @@ dependencies = [
     "opentelemetry-api>=1.42.1",
     "opentelemetry-sdk>=1.42.1",
     "opentelemetry-exporter-otlp>=1.42.1",
-    "docling"
+    "docling",
+    "dspy",
+    "openinference-instrumentation-dspy",
+    "mcp>=1.2.0",
+    "python-logging @ file:///${PROJECT_ROOT}/../../.agents/skills/python-logging/modules/python-logging"
 ]
 
 [build-system]
@@ -40,6 +44,3 @@ where = ["src"]
 dev = [
     "mkinit>=1.2.0",
 ]
-
-[tool.pdm.build]
-excludes = ["third_party/**"]
