@@ -1,14 +1,12 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apps.fastapi.src.routers.document import router as document_router
 from apps.fastapi.src.routers.agent import router as agent_router
-from matrixcurator.config.main import settings
-from matrixcurator.config.logging import setup_logging, get_logger
-from matrixcurator.integrations.posthog import capture_event
+from matrixcurator import settings
+from apps.fastapi.src.dependencies import client
 
-# Initialize logging and telemetry
-setup_logging(app_name="fastapi")
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="MatrixCurator API",
@@ -32,7 +30,6 @@ app.include_router(agent_router)
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting MatrixCurator API")
-    capture_event("api_started")
 
 @app.get("/health")
 async def health_check():

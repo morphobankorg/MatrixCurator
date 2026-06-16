@@ -1,13 +1,18 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from matrixcurator.modules.document.schemas import ParseResponse, NexusGenerateRequest, NexusGenerateResponse
-from matrixcurator.exceptions import DocumentParseError, NexusFormatError
-from matrixcurator import MatrixCuratorClient
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from matrixcurator import (
+    MatrixCuratorClient,
+    ParseResponse,
+    NexusGenerateRequest,
+    NexusGenerateResponse,
+    DocumentParseError,
+    NexusFormatError,
+)
+from apps.fastapi.src.dependencies import get_client
 
 router = APIRouter(prefix="/api/v1/document", tags=["document"])
-client = MatrixCuratorClient(app_name="fastapi-document-router")
 
 @router.post("/parse", response_model=ParseResponse)
-async def parse_document_endpoint(file: UploadFile = File(...)):
+async def parse_document_endpoint(file: UploadFile = File(...), client: MatrixCuratorClient = Depends(get_client)):
     content = await file.read()
     filename = file.filename
     
@@ -20,7 +25,7 @@ async def parse_document_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/nexus", response_model=NexusGenerateResponse)
-async def generate_nexus_endpoint(request: NexusGenerateRequest):
+async def generate_nexus_endpoint(request: NexusGenerateRequest, client: MatrixCuratorClient = Depends(get_client)):
     try:
         updated_nexus_bytes = client.generate_nexus(
             original_nexus=request.original_nexus,
