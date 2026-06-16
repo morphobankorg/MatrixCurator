@@ -1,14 +1,20 @@
 from typing import List, Dict, Any, Optional
 from matrixcurator.modules.document.services import parse_document, generate_document
 from matrixcurator.modules.agent.graph import agent_graph
-from matrixcurator.config.main import settings
-from matrixcurator.config.logging import setup_logging, get_logger
+from matrixcurator.config.main import Settings, settings as global_settings
+from python_logging.main import get_logger
 from matrixcurator.integrations.posthog import capture_event
 import uuid
 
+__all__ = ["MatrixCuratorClient"]
+
 class MatrixCuratorClient:
-    def __init__(self, app_name: str = "matrixcurator"):
-        setup_logging(app_name=app_name)
+    def __init__(self, app_name: str = "matrixcurator", **kwargs: Any):
+        if kwargs:
+            new_settings = Settings(**kwargs)
+            for key, value in new_settings.model_dump(exclude_unset=True).items():
+                setattr(global_settings, key, value)
+                
         self.logger = get_logger(__name__)
         self.logger.info(f"Initialized MatrixCuratorClient for {app_name}")
 
@@ -20,29 +26,24 @@ class MatrixCuratorClient:
         return text
 
     async def extract_characters(
-        self, 
-        context: str, 
-        character_indices: List[int], 
-        model_provider: Optional[str] = None, 
-        fallback_model: Optional[str] = None, 
+        self,
+        context: str,
+        character_indices: List[int],
+        starting_tier: int = 2,
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Extracts character states from the given context."""
         extracted_states = []
         all_errors = []
         
-        model = model_provider or settings.DEFAULT_MODEL
-        fallback = fallback_model or settings.FALLBACK_MODEL
-        
-        self.logger.info(f"Extracting characters: {character_indices} using model {model}")
+        self.logger.info(f"Extracting characters: {character_indices} starting at tier {starting_tier}")
         
         for idx in character_indices:
             thread_id = str(uuid.uuid4())
             config = {
                 "configurable": {
                     "thread_id": thread_id,
-                    "model_provider": model,
-                    "fallback_model": fallback,
+                    "starting_tier": starting_tier,
                     "user_id": user_id
                 }
             }
@@ -50,7 +51,7 @@ class MatrixCuratorClient:
             initial_state = {
                 "character_index": idx,
                 "context": context,
-                "current_model": model,
+                "current_tier": starting_tier,
                 "attempts": 0,
                 "errors": []
             }
@@ -68,7 +69,7 @@ class MatrixCuratorClient:
                 self.logger.error(error_msg)
                 all_errors.append(error_msg)
                 
-        capture_event("characters_extracted", {"num_indices": len(character_indices), "model": model})
+        capture_event("characters_extracted", {"num_indices": len(character_indices), "starting_tier": starting_tier})
         return {"extracted_states": extracted_states, "errors": all_errors}
 
     def generate_nexus(self, original_nexus: str, extracted_states: List[Dict[str, Any]]) -> bytes:

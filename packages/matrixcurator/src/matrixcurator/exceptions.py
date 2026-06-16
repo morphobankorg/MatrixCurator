@@ -1,3 +1,11 @@
+__all__ = [
+    "MatrixCuratorError",
+    "DocumentParseError",
+    "NexusFormatError",
+    "LLMServiceError",
+    "ContextLengthExceededError",
+]
+
 class MatrixCuratorError(Exception):
     """Base exception for all MatrixCurator errors."""
     pass
