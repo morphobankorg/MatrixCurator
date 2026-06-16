@@ -1,12 +1,11 @@
-from fastapi import APIRouter, HTTPException
-from matrixcurator.modules.agent.schemas import ExtractRequest, ExtractResponse
-from matrixcurator import MatrixCuratorClient
+from fastapi import APIRouter, HTTPException, Depends
+from matrixcurator import MatrixCuratorClient, ExtractRequest, ExtractResponse
+from apps.fastapi.src.dependencies import get_client
 
 router = APIRouter(prefix="/api/v1/agent", tags=["agent"])
-client = MatrixCuratorClient(app_name="fastapi-agent-router")
 
 @router.post("/extract", response_model=ExtractResponse)
-async def extract_data(request: ExtractRequest):
+async def extract_data(request: ExtractRequest, client: MatrixCuratorClient = Depends(get_client)):
     try:
         result = await client.extract_characters(
             context=request.context,

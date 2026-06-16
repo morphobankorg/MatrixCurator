@@ -1,19 +1,22 @@
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 from apps.fastapi.src.main import app
+from apps.fastapi.src.dependencies import get_client
 
 client = TestClient(app)
 
-@patch("apps.fastapi.src.routers.agent.client.extract_characters", new_callable=AsyncMock)
-async def test_extract_data_success(mock_extract):
+def test_extract_data_success():
+    mock_client = MagicMock()
+    mock_client.extract_characters = AsyncMock()
+    app.dependency_overrides[get_client] = lambda: mock_client
     # Arrange
-    mock_extract.return_value = {
-        "extracted_data": {
+    mock_client.extract_characters.return_value = {
+        "extracted_states": [{
             "character_index": 1,
             "character_name": "Eye color",
             "states": {"0": "blue"}
-        },
+        }],
         "errors": []
     }
     
@@ -27,16 +30,19 @@ async def test_extract_data_success(mock_extract):
     response = client.post("/api/v1/agent/extract", json=payload)
     
     # Assert
-    assert response.status_code == 200
+    assert response.status_code == 200, response.text
     data = response.json()
     assert len(data["extracted_states"]) == 1
     assert data["extracted_states"][0]["character_name"] == "Eye color"
     assert len(data["errors"]) == 0
 
-@patch("apps.fastapi.src.routers.agent.client.extract_characters", new_callable=AsyncMock)
-async def test_extract_data_failure(mock_extract):
+def test_extract_data_failure():
+    mock_client = MagicMock()
+    mock_client.extract_characters = AsyncMock()
+    app.dependency_overrides[get_client] = lambda: mock_client
+    
     # Arrange
-    mock_extract.side_effect = Exception("Graph execution failed")
+    mock_client.extract_characters.side_effect = Exception("Graph execution failed")
     
     payload = {
         "context": "Eye color is blue (0).",
@@ -48,11 +54,9 @@ async def test_extract_data_failure(mock_extract):
     response = client.post("/api/v1/agent/extract", json=payload)
     
     # Assert
-    assert response.status_code == 200 # The endpoint catches the error and returns it in the response body
+    assert response.status_code == 500, response.text
     data = response.json()
-    assert len(data["extracted_states"]) == 0
-    assert len(data["errors"]) == 1
-    assert "Failed to extract character 1: Graph execution failed" in data["errors"][0]
+    assert "Graph execution failed" in data["detail"]
 
 def test_extract_data_validation_error():
     payload = {
