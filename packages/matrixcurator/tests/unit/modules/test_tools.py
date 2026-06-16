@@ -1,0 +1,71 @@
+import pytest
+from unittest.mock import patch, MagicMock
+from matrixcurator.modules.tools.pymupdf import parse_with_pymupdf
+from matrixcurator.modules.tools.txt import parse_with_txt
+from matrixcurator.modules.tools.re import generate_with_re
+from matrixcurator.modules.tools.docling import parse_with_docling
+from matrixcurator.exceptions import DocumentParseError
+
+@patch("matrixcurator.modules.tools.pymupdf.fitz.open")
+def test_pymupdf_tool_success(mock_fitz_open):
+    mock_doc = MagicMock()
+    mock_page1 = MagicMock()
+    mock_page1.get_text.return_value = "Page 1 text. "
+    mock_page2 = MagicMock()
+    mock_page2.get_text.return_value = "Page 2 text."
+    
+    mock_doc.__iter__.return_value = [mock_page1, mock_page2]
+    mock_fitz_open.return_value = mock_doc
+    
+    content = b"fake pdf content"
+    
+    result = parse_with_pymupdf.invoke({"file_content": content, "filename": "test.pdf"})
+    
+    assert result == "Page 1 text. Page 2 text."
+    mock_fitz_open.assert_called_once_with(stream=content, filetype="pdf")
+
+@patch("matrixcurator.modules.tools.pymupdf.fitz.open")
+def test_pymupdf_tool_failure(mock_fitz_open):
+    mock_fitz_open.side_effect = Exception("Corrupted PDF")
+    content = b"corrupted pdf content"
+    
+    with pytest.raises(DocumentParseError) as exc_info:
+        parse_with_pymupdf.invoke({"file_content": content, "filename": "test.pdf"})
+    
+    assert "Failed to parse PDF with PyMuPDF: Corrupted PDF" in str(exc_info.value)
+
+def test_txt_tool_success():
+    content = b"Hello world"
+    result = parse_with_txt.invoke({"file_content": content, "filename": "test.txt"})
+    assert result == "Hello world"
+
+def test_re_tool_success():
+    original_nexus = "BEGIN DATA;\nDIMENSIONS NTAX=3 NCHAR=1;\nFORMAT DATATYPE=STANDARD MISSING=? GAP=-;\nMATRIX\nTaxonA 1\nTaxonB 0\nTaxonC ?\n;\nEND;"
+    extracted_states = [
+        {
+            "character_index": 1,
+            "character_name": "Tail length",
+            "states": {"0": "short", "1": "long"}
+        }
+    ]
+    
+    result = generate_with_re.invoke({"original_nexus": original_nexus, "extracted_states": extracted_states})
+    result_str = result.decode("utf-8")
+    
+    assert "CHARSTATELABELS" in result_str
+    assert "1 'Tail length' / 0 'short', 1 'long'" in result_str
+    assert "MATRIX" in result_str
+
+@patch("matrixcurator.modules.tools.docling.DocumentConverter")
+def test_docling_tool_success(mock_converter_class):
+    mock_converter = MagicMock()
+    mock_result = MagicMock()
+    mock_result.document.export_to_markdown.return_value = "Docling parsed text"
+    mock_converter.convert.return_value = mock_result
+    mock_converter_class.return_value = mock_converter
+    
+    content = b"fake doc content"
+    result = parse_with_docling.invoke({"file_content": content, "filename": "test.pdf"})
+    
+    assert result == "Docling parsed text"
+    mock_converter.convert.assert_called_once()
