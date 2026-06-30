@@ -40,8 +40,7 @@ async def test_run_dataset_benchmark_success(mock_langfuse_class):
     mock_process_fn.assert_any_call(item2, mock_trace)
     
     # Check that link was called
-    assert item1.link.call_count == 1
-    assert item2.link.call_count == 1
+    assert mock_lf.api.dataset_run_items.create.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -105,7 +104,7 @@ async def test_run_dataset_benchmark_skip(mock_langfuse_class):
     await run_dataset_benchmark("test_dataset", "test_run", mock_process_fn, limit=0, workers=2)
     
     # Link should NOT be called
-    assert item1.link.call_count == 0
+    assert mock_lf.api.dataset_run_items.create.call_count == 0
 
 
 @pytest.mark.asyncio
