@@ -28,7 +28,7 @@ async def test_run_dataset_benchmark_success(mock_langfuse_class):
     mock_trace = MagicMock()
     mock_trace.id = "trace_id_123"
     mock_trace.trace_id = "trace_id_123_456"
-    mock_lf.trace.return_value = mock_trace
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     mock_process_fn = AsyncMock()
     
@@ -70,7 +70,7 @@ async def test_run_dataset_benchmark_limit(mock_langfuse_class):
     mock_trace = MagicMock()
     mock_trace.id = "trace_id_123"
     mock_trace.trace_id = "trace_id_123_456"
-    mock_lf.trace.return_value = mock_trace
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     mock_process_fn = AsyncMock()
     
@@ -97,7 +97,7 @@ async def test_run_dataset_benchmark_skip(mock_langfuse_class):
     mock_trace = MagicMock()
     mock_trace.id = "trace_id_123"
     mock_trace.trace_id = "trace_id_123_456"
-    mock_lf.trace.return_value = mock_trace
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     async def mock_process_fn(item, trace):
         raise SkipBenchmark("skip")
@@ -124,7 +124,7 @@ async def test_run_dataset_benchmark_fail(mock_langfuse_class):
     mock_trace = MagicMock()
     mock_trace.id = "trace_id_123"
     mock_trace.trace_id = "trace_id_123_456"
-    mock_lf.trace.return_value = mock_trace
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     async def mock_process_fn(item, trace):
         raise FailBenchmark("fail")
@@ -168,7 +168,7 @@ async def test_run_dataset_benchmark_resilient_input_parsing(mock_langfuse_class
     mock_trace = MagicMock()
     mock_trace.id = "trace_id_123"
     mock_trace.trace_id = "trace_id_123_456"
-    mock_lf.trace.return_value = mock_trace
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     mock_process_fn = AsyncMock()
     
