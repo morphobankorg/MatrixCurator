@@ -25,10 +25,10 @@ async def run_dataset_benchmark(
         workers (int): Number of concurrent tasks.
     """
     logger.info("Starting benchmark run: %s on dataset %s", run_name, dataset_name)
-    lf_client = langfuse.Langfuse()
+    lanfuse_client = langfuse.Langfuse()
 
     try:
-        dataset = lf_client.get_dataset(dataset_name)
+        dataset = lanfuse_client.get_dataset(dataset_name)
     except Exception as e:
         logger.error("Failed to fetch dataset %s: %s", dataset_name, str(e))
         return
@@ -64,7 +64,7 @@ async def run_dataset_benchmark(
 
     async def _run(item: Any) -> None:
         async with semaphore:
-            trace = lf_client.trace(name=run_name, tags=[run_name])
+            trace = lanfuse_client.trace(name=run_name, tags=[run_name])
             try:
                 await process_fn(item, trace)
                 item.link(trace, run_name)

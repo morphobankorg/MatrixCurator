@@ -8,7 +8,7 @@ from lume import structlog
 from matrixcurator.config.main import settings as core_settings
 from matrixcurator_benchmark.config.main import settings as benchmark_settings
 from matrixcurator.modules.retrieval.services import embed_and_store_chunks, chunk_text
-import matrixcurator.modules.retrieval.repositories.sqlite as sqlite_repo
+import matrixcurator.modules.retrieval.repositories.sqlite as sqlite_repository
 
 logger = structlog.get_logger(__name__)
 PARSERS = ["docling", "pymupdf", "docx", "txt"]

@@ -21,12 +21,12 @@ logger = structlog.get_logger(__name__)
 
 
 async def preparse_documents(
-    parquet_repo: Any, file_path: str, force: bool = False, limit: int | None = None, no_cache: bool = False
+    parquet_repository: Any, file_path: str, force: bool = False, limit: int | None = None, no_cache: bool = False
 ) -> List[Dict[str, Any]]:
     """Loads documents.parquet, iterates over rows, parses missing text using extractors, and saves back to the original file."""
     
     if os.path.exists(file_path):
-        docs = parquet_repo.read_documents(file_path)
+        docs = parquet_repository.read_documents(file_path)
     else:
         logger.error(f"Missing {file_path}. Cannot pre-parse.")
         return []
@@ -45,7 +45,7 @@ async def preparse_documents(
             row["text"] = None
         needs_save = True
         try:
-            parquet_repo.write_documents(docs, file_path)
+            parquet_repository.write_documents(docs, file_path)
             logger.info(f"Saved reset documents to {file_path}")
             needs_save = False
         except Exception as e:
@@ -115,7 +115,7 @@ async def preparse_documents(
                 updated_parses.append({"parser": "pymupdf", "pages": [{"page": 1, "content": f"Error: {str(e)}"}]})
                 updated_parses.append({"parser": "docling", "pages": [{"page": 1, "content": f"Error: {str(e)}"}]})
                 row["text"] = updated_parses
-                parquet_repo.write_documents(docs, file_path)
+                parquet_repository.write_documents(docs, file_path)
                 logger.info(f"Saved intermediate parsed document {document_id} to {file_path}")
                 needs_save = False
                 continue
@@ -237,23 +237,23 @@ async def preparse_documents(
         if updated_parses and updated_parses != existing_parses:
             row["text"] = updated_parses
             try:
-                parquet_repo.write_documents(docs, file_path)
+                parquet_repository.write_documents(docs, file_path)
                 logger.info(f"Saved intermediate parsed document {document_id} to {file_path}")
                 needs_save = False
             except Exception as e:
                 logger.warning(f"Failed to cache document {document_id}: {e}")
 
     if needs_save:
-        parquet_repo.write_documents(docs, file_path)
+        parquet_repository.write_documents(docs, file_path)
         logger.info(f"Saved parsed documents to {file_path}")
     
     return docs
 
 
 async def sync_datasets(
-    parquet_repo: Any, langfuse_repo: Any, client: Langfuse, docs: List[Dict[str, Any]]
+    parquet_repository: Any, langfuse_repository: Any, client: Langfuse, docs: List[Dict[str, Any]]
 ) -> None:
-    """Reads parquets and unconditionally pushes all rows to Langfuse using the injected langfuse_repo module."""
+    """Reads parquets and unconditionally pushes all rows to Langfuse using the injected langfuse_repository module."""
 
     chars_path = settings.character_states_parquet_path
 
@@ -270,7 +270,7 @@ async def sync_datasets(
     )
 
     logger.info("Reading character states parquet file")
-    chars = parquet_repo.read_character_states(chars_path)
+    chars = parquet_repository.read_character_states(chars_path)
 
     limiter = AsyncRateLimiter(settings=settings.langfuse_rate_limit) if settings.langfuse_rate_limit else None
 
@@ -317,7 +317,7 @@ async def sync_datasets(
         }
         if limiter:
             await limiter.acquire()
-        await langfuse_repo.upsert_dataset_item(client, "documents", item)
+        await langfuse_repository.upsert_dataset_item(client, "documents", item)
 
     # Push to 'character_states' dataset
     logger.info("Uploading character states to Langfuse")
@@ -357,6 +357,6 @@ async def sync_datasets(
         }
         if limiter:
             await limiter.acquire()
-        await langfuse_repo.upsert_dataset_item(client, "character_states", item)
+        await langfuse_repository.upsert_dataset_item(client, "character_states", item)
 
     logger.info("Dataset sync complete")

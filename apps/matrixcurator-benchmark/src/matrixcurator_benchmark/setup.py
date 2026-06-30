@@ -5,10 +5,13 @@ from typing import Any, Dict
 
 from matrixcurator_benchmark.modules.dataset import services as dataset_services
 from matrixcurator_benchmark.modules.dataset.repositories import (
-    parquet as parquet_repo,
-    langfuse as langfuse_repo,
+    parquet as parquet_repository,
+    langfuse as dataset_langfuse_repository,
 )
 from matrixcurator_benchmark.modules.evaluation import services as evaluation_services
+from matrixcurator_benchmark.modules.evaluation.repositories import (
+    langfuse as evaluation_langfuse_repository,
+)
 from matrixcurator_benchmark.modules.retrieval import services as retrieval_services
 
 logger = structlog.get_logger(__name__)
@@ -30,7 +33,7 @@ async def bootstrap_environment(
     
     file_path = "apps/matrixcurator-benchmark/src/matrixcurator_benchmark/data/documents.parquet"
     parsed_docs = await dataset_services.preparse_documents(
-        parquet_repo=parquet_repo,
+        parquet_repository=parquet_repository,
         file_path=file_path,
         limit=limit,
         no_cache=no_cache
@@ -43,18 +46,18 @@ async def bootstrap_environment(
     
     if not skip_sync:
         logger.info("Syncing datasets and evaluators to Langfuse...")
-        lf_client = langfuse.Langfuse()
+        lanfuse_client = langfuse.Langfuse()
         
         await dataset_services.sync_datasets(
-            parquet_repo=parquet_repo,
-            langfuse_repo=langfuse_repo,
-            client=lf_client,
+            parquet_repository=parquet_repository,
+            langfuse_repository=dataset_langfuse_repository,
+            client=lanfuse_client,
             docs=parsed_docs
         )
         
         evaluation_services.setup_evaluators(
-            langfuse_repo=langfuse_repo,
-            client=lf_client
+            langfuse_repository=evaluation_langfuse_repository,
+            client=lanfuse_client
         )
     
     logger.info("Auto ingesting vectors...")

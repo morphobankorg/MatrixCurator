@@ -4,7 +4,7 @@ from lume import structlog
 
 logger = structlog.get_logger(__name__)
 
-def setup_evaluators(langfuse_repo: Any, client: Langfuse) -> None:
+def setup_evaluators(langfuse_repository: Any, client: Langfuse) -> None:
     """Sets up evaluation rules and configs via the injected Langfuse evaluation repository."""
     logger.info("Setting up Langfuse Evaluators and Score Config")
 
@@ -16,7 +16,7 @@ def setup_evaluators(langfuse_repo: Any, client: Langfuse) -> None:
         {"label": "Low Context Precision", "value": 0.1},
     ]
 
-    score_config_id = langfuse_repo.create_score_config(
+    score_config_id = langfuse_repository.create_score_config(
         client,
         name="Semantic Recall",
         categories=categories,
@@ -45,7 +45,7 @@ def setup_evaluators(langfuse_repo: Any, client: Langfuse) -> None:
 
     cat_labels = [c["label"] for c in categories]
     try:
-        langfuse_repo.create_evaluator(
+        langfuse_repository.create_evaluator(
             client,
             evaluator_name=evaluator_name,
             prompt_text=prompt_text,
@@ -64,7 +64,7 @@ def setup_evaluators(langfuse_repo: Any, client: Langfuse) -> None:
         
         dataset = _get_dataset()
 
-        langfuse_repo.bind_evaluation_rule(
+        langfuse_repository.bind_evaluation_rule(
             client,
             rule_name="Semantic Recall",
             evaluator_name=evaluator_name,
