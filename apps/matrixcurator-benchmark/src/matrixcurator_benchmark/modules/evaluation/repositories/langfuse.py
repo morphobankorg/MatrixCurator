@@ -109,7 +109,7 @@ def create_evaluator(
     reraise=True,
 )
 def bind_evaluation_rule(
-    client: Langfuse, rule_name: str, evaluator_name: str, dataset_id: str
+    client: Langfuse, rule_name: str, evaluator_name: str, dataset_name: str
 ) -> None:
     """Binds an evaluation rule to a specific dataset."""
     try:
@@ -130,9 +130,9 @@ def bind_evaluation_rule(
                     filter=[
                         {
                             "type": "stringOptions",
-                            "column": "datasetId",
+                            "column": "datasetName",
                             "operator": "any of",
-                            "value": [dataset_id],
+                            "value": [dataset_name],
                         }
                     ],
                     mapping=[

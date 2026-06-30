@@ -53,22 +53,11 @@ def setup_evaluators(langfuse_repository: Any, client: Langfuse) -> None:
             categories=cat_labels,
         )
 
-        import tenacity
-        @tenacity.retry(
-            stop=tenacity.stop_after_attempt(5),
-            wait=tenacity.wait_exponential(multiplier=1, min=2, max=10),
-            reraise=True,
-        )
-        def _get_dataset():
-            return client.get_dataset("character_states")
-        
-        dataset = _get_dataset()
-
         langfuse_repository.bind_evaluation_rule(
             client,
             rule_name="Semantic Recall",
             evaluator_name=evaluator_name,
-            dataset_id=dataset.id,
+            dataset_name="character_states",
         )
     except Exception as e:
         logger.warning("Failed to setup evaluator: %s", str(e))
