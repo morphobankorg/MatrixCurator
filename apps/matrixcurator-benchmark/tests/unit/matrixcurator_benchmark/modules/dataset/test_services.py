@@ -22,8 +22,8 @@ async def test_preparse_documents_realtime_saving(mock_exists, mock_makedirs):
         {"id": "doc2", "mime_type": "text/plain", "filename": "file2.txt", "file_bytes": b"test2", "text": None}
     ]
     
-    mock_repo = MagicMock()
-    mock_repo.read_documents.return_value = dummy_records
+    mock_repository = MagicMock()
+    mock_repository.read_documents.return_value = dummy_records
 
     # Mock pyarrow.parquet.read_table to return our dummy records
     mock_table = MagicMock()
@@ -33,11 +33,11 @@ async def test_preparse_documents_realtime_saving(mock_exists, mock_makedirs):
         mock_tool.ainvoke = AsyncMock(return_value="parsed text")
         with patch("matrixcurator_benchmark.modules.dataset.services.parse_with_txt", mock_tool):
             # Call preparse_documents
-            result = await preparse_documents(mock_repo, "dummy_path", force=True, limit=None)
+            result = await preparse_documents(mock_repository, "dummy_path", force=True, limit=None)
 
             # Assert that to_parquet was called for each document updated.
             # (No cache init happens because no_cache=False by default)
-            assert mock_repo.write_documents.call_count == 2
+            assert mock_repository.write_documents.call_count == 2
             
             # Verify the records were updated
             assert result[0]["text"] == [{"parser": "txt", "pages": [{"page": 1, "content": "parsed text"}]}]
@@ -59,8 +59,8 @@ async def test_preparse_documents_resilient_parsing(mock_exists, mock_makedirs):
         {"id": "doc2", "mime_type": "text/plain", "filename": "file2.txt", "file_bytes": b"test2", "text": "[]"}
     ]
     
-    mock_repo = MagicMock()
-    mock_repo.read_documents.return_value = dummy_records
+    mock_repository = MagicMock()
+    mock_repository.read_documents.return_value = dummy_records
 
     mock_table = MagicMock()
     mock_table.to_pylist.return_value = dummy_records
@@ -69,7 +69,7 @@ async def test_preparse_documents_resilient_parsing(mock_exists, mock_makedirs):
         mock_tool.ainvoke = AsyncMock(return_value="parsed text")
         with patch("matrixcurator_benchmark.modules.dataset.services.parse_with_txt", mock_tool):
             # This should not raise an exception
-            result = await preparse_documents(mock_repo, "dummy_path", force=True, limit=None)
+            result = await preparse_documents(mock_repository, "dummy_path", force=True, limit=None)
 
             # Both rows should have been processed and overwritten with valid lists
             assert result[0]["text"] == [{"parser": "txt", "pages": [{"page": 1, "content": "parsed text"}]}]
@@ -93,8 +93,8 @@ async def test_preparse_documents_null_pages_graceful(mock_exists, mock_makedirs
         {"id": "doc1", "mime_type": "text/plain", "filename": "file1.txt", "file_bytes": b"test1", "text": invalid_text},
     ]
     
-    mock_repo = MagicMock()
-    mock_repo.read_documents.return_value = dummy_records
+    mock_repository = MagicMock()
+    mock_repository.read_documents.return_value = dummy_records
 
     mock_table = MagicMock()
     mock_table.to_pylist.return_value = dummy_records
@@ -103,7 +103,7 @@ async def test_preparse_documents_null_pages_graceful(mock_exists, mock_makedirs
         mock_tool.ainvoke = AsyncMock(return_value="fixed parsed text")
         with patch("matrixcurator_benchmark.modules.dataset.services.parse_with_txt", mock_tool):
             # This should not raise a TypeError: 'NoneType' object is not iterable
-            result = await preparse_documents(mock_repo, "dummy_path", force=True, limit=None)
+            result = await preparse_documents(mock_repository, "dummy_path", force=True, limit=None)
 
             # It should have re-parsed and fixed the null pages
             assert result[0]["text"] == [{"parser": "txt", "pages": [{"page": 1, "content": "fixed parsed text"}]}]
@@ -111,9 +111,9 @@ async def test_preparse_documents_null_pages_graceful(mock_exists, mock_makedirs
 
 @pytest.mark.asyncio
 async def test_sync_datasets_filters_character_states_by_document():
-    mock_parquet_repo = MagicMock()
+    mock_parquet_repository = MagicMock()
     # Characters array has states for doc1 and doc2
-    mock_parquet_repo.read_character_states.return_value = [
+    mock_parquet_repository.read_character_states.return_value = [
         {"document_id": "doc1", "character": {"index": 1}},
         {"document_id": "doc2", "character": {"index": 2}},
         {"document_id": "doc3", "character": {"index": 3}}
@@ -125,18 +125,18 @@ async def test_sync_datasets_filters_character_states_by_document():
         {"document_id": "doc3", "text": []}
     ]
     
-    mock_langfuse_repo = MagicMock()
-    mock_langfuse_repo.upsert_dataset_item = AsyncMock()
+    mock_langfuse_repository = MagicMock()
+    mock_langfuse_repository.upsert_dataset_item = AsyncMock()
     mock_client = MagicMock()
     
-    await sync_datasets(mock_parquet_repo, mock_langfuse_repo, mock_client, docs)
+    await sync_datasets(mock_parquet_repository, mock_langfuse_repository, mock_client, docs)
     
     # Total upserts should be 2 docs + 2 char states (doc1 and doc3) = 4
-    assert mock_langfuse_repo.upsert_dataset_item.call_count == 4
+    assert mock_langfuse_repository.upsert_dataset_item.call_count == 4
     
     # Check that doc2 character was filtered out
     char_call_args = [
-        call[0] for call in mock_langfuse_repo.upsert_dataset_item.call_args_list
+        call[0] for call in mock_langfuse_repository.upsert_dataset_item.call_args_list
         if call[0][1] == "character_states"
     ]
     
@@ -152,10 +152,10 @@ async def test_sync_datasets_sequential_and_schemas(mock_rate_limiter_cls):
     Test that sync_datasets constructs the correct expected schemas for both datasets
     and respects rate limiting using AsyncRateLimiter.
     """
-    mock_parquet_repo = MagicMock()
+    mock_parquet_repository = MagicMock()
     
     # Mock Character States input
-    mock_parquet_repo.read_character_states.return_value = [
+    mock_parquet_repository.read_character_states.return_value = [
         {
             "document_id": "doc1",
             "character": {"name": "m3 cristid obliqua", "index": 81},
@@ -164,8 +164,8 @@ async def test_sync_datasets_sequential_and_schemas(mock_rate_limiter_cls):
         }
     ]
     
-    mock_langfuse_repo = MagicMock()
-    mock_langfuse_repo.upsert_dataset_item = AsyncMock()
+    mock_langfuse_repository = MagicMock()
+    mock_langfuse_repository.upsert_dataset_item = AsyncMock()
     
     mock_client = MagicMock()
     
@@ -196,14 +196,14 @@ async def test_sync_datasets_sequential_and_schemas(mock_rate_limiter_cls):
     mock_rate_limiter_cls.return_value = mock_limiter
     
     try:
-        await sync_datasets(mock_parquet_repo, mock_langfuse_repo, mock_client, docs)
+        await sync_datasets(mock_parquet_repository, mock_langfuse_repository, mock_client, docs)
         
         # We expect 2 upserts (1 doc, 1 char state) and 2 acquire calls
-        assert mock_langfuse_repo.upsert_dataset_item.call_count == 2
+        assert mock_langfuse_repository.upsert_dataset_item.call_count == 2
         assert mock_limiter.acquire.call_count == 2
         
         # Verify Documents schema
-        doc_call_args = mock_langfuse_repo.upsert_dataset_item.call_args_list[0][0]
+        doc_call_args = mock_langfuse_repository.upsert_dataset_item.call_args_list[0][0]
         assert doc_call_args[1] == "documents"
         doc_item = doc_call_args[2]
         assert doc_item["id"] == "Doc-doc1"
@@ -217,7 +217,7 @@ async def test_sync_datasets_sequential_and_schemas(mock_rate_limiter_cls):
         assert expected_output["character_count"] == 10  # 5 + 5 chars
         
         # Verify Character States schema
-        char_call_args = mock_langfuse_repo.upsert_dataset_item.call_args_list[1][0]
+        char_call_args = mock_langfuse_repository.upsert_dataset_item.call_args_list[1][0]
         assert char_call_args[1] == "character_states"
         char_item = char_call_args[2]
         assert char_item["input"]["id"] == "Doc-doc1-Char-81"

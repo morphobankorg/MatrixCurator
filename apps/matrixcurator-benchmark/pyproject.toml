@@ -14,6 +14,7 @@ dependencies = [
     "pandas>=2.0.0",
     "pyarrow>=14.0.0",
     "lume @ git+https://github.com/morphobankorg/lume-python.git",
+    "attrs",
 ]
 
 [tool.uv.sources]
