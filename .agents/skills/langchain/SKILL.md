@@ -11,7 +11,7 @@ description: Provides specialized context, rules, and tools for implementing, co
 langchain/
 ├── assets
 ├── modules
-│   └── docs @ submodule
+│   └── docs @ 2122d9ec6
 ├── references
 ├── scripts
 └── SKILL.md
