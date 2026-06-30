@@ -1,11 +1,15 @@
-# src/benchmark/__main__.py
-import os
 import argparse
 import asyncio
-from matrixcurator_benchmark.core.runner import discover_benchmarks, run_all
+import langfuse
+import structlog
 
+from matrixcurator_benchmark.setup import bootstrap_environment
+from matrixcurator_benchmark.tools import run_tools_benchmarks
+from matrixcurator_benchmark.retrieval import run_retrieval_benchmarks
 
-def main():
+logger = structlog.get_logger(__name__)
+
+async def run_main():
     parser = argparse.ArgumentParser(description="MatrixCurator Benchmark Runner")
     parser.add_argument(
         "--skip-sync",
@@ -27,17 +31,35 @@ def main():
         help="Number of concurrent workers (default: 4)",
     )
     parser.add_argument(
-        "args", nargs="*", help="Additional target filters (currently unused)"
+        "args", nargs="*", help="Target suites to run (e.g. tools, retrieval)"
     )
 
     args = parser.parse_args()
     
-    benchmark_dir = os.path.dirname(__file__)
-    print(f"Discovering benchmarks in {benchmark_dir}")
-    discover_benchmarks(benchmark_dir, filters=args.args)
+    logger.info(
+        "Starting benchmark execution (workers=%d, limit=%d, skip_sync=%s, no_cache=%s)",
+        args.workers, args.limit, args.skip_sync, args.no_cache
+    )
+    
+    docs_dict = await bootstrap_environment(
+        limit=args.limit, skip_sync=args.skip_sync, no_cache=args.no_cache
+    )
 
-    print(f"Running benchmarks (workers={args.workers}, limit={args.limit}, skip_sync={args.skip_sync}, no_cache={args.no_cache})")
-    asyncio.run(run_all(workers=args.workers, limit=args.limit, skip_sync=args.skip_sync, no_cache=args.no_cache))
+    targets = args.args if args.args else ["tools", "retrieval"]
+
+    if "tools" in targets:
+        await run_tools_benchmarks(limit=args.limit, workers=args.workers, docs_dict=docs_dict)
+        
+    if "retrieval" in targets:
+        await run_retrieval_benchmarks(limit=args.limit, workers=args.workers, docs_dict=docs_dict)
+
+    lf = langfuse.Langfuse()
+    lf.flush()
+    logger.info("Benchmarks completed successfully.")
+
+
+def main():
+    asyncio.run(run_main())
 
 
 if __name__ == "__main__":
