@@ -147,7 +147,7 @@ async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = Fa
             if hasattr(func, "__benchmark_metadata__"):
                 skip_if = func.__benchmark_metadata__.get("skip_if")
                 if skip_if and skip_if(resolved_kwargs):
-                    logger.debug("Skipped benchmark: %s - pre-execution condition met", func.__name__)
+                    logger.info("Skipped benchmark: %s - pre-execution condition met", func.__name__)
                     return
 
             @observe(name=trace_name)
@@ -201,7 +201,7 @@ async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = Fa
 
         # Fetch the dataset from Langfuse
         try:
-            dataset = lf_client.get_dataset(dataset_name)
+            dataset = fetch_dataset_with_retry(lf_client, dataset_name)
             items = getattr(dataset, "items", [])
         except Exception as e:
             logger.error("Could not fetch dataset %s: %s", dataset_name, e)
