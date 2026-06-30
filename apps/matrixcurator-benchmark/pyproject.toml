@@ -1,0 +1,40 @@
+[project]
+name = "matrixcurator-benchmark"
+version = "2025.7.4"
+authors = [
+    { name = "Shreya Jariwala", email = "sjariwala@morphobank.org" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "matrixcurator",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+    "langfuse>=4.9.1",
+    "tqdm>=4.68.3",
+    "pandas>=2.0.0",
+    "pyarrow>=14.0.0",
+    "lume @ git+https://github.com/morphobankorg/lume-python.git",
+]
+
+[tool.uv.sources]
+matrixcurator = { workspace = true }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project.scripts]
+matrixcurator-benchmark = "matrixcurator_benchmark.__main__:main"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.pdm.build]
+excludes = ["third_party/**"]
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
