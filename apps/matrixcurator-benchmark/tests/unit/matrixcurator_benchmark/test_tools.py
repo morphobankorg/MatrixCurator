@@ -251,20 +251,26 @@ async def test_execute_tool_benchmark_null_pages():
     pre_parsed_data = [
         {
             "parser": "testtool",
-            "pages": None
+            "pages": [
+                {"page": 1, "content": "Page 1 content"},
+                {"page": 2, "content": "Page 2 content"}
+            ]
         }
     ]
     
-    dataset_item = MockDatasetItem({"document_id": "doc_null", "pages": [1]})
+    # Send missing/null pages
+    dataset_item = MockDatasetItem({"document_id": "doc_null", "pages": []})
     docs_dict = {"doc_null": {"mime_type": "application/pdf", "text": pre_parsed_data}}
     trace = MagicMock()
 
-    with pytest.raises(FailBenchmark, match="TestTool parsing failed: Could not find valid parsed content for required pages."):
-        await _execute_tool_benchmark(
-            item=dataset_item,
-            trace=trace,
-            tool_name="TestTool",
-            requires_pages=True,
-            docs_dict=docs_dict,
-            expected_mime="application/pdf",
-        )
+    await _execute_tool_benchmark(
+        item=dataset_item,
+        trace=trace,
+        tool_name="TestTool",
+        requires_pages=True,
+        docs_dict=docs_dict,
+        expected_mime="application/pdf",
+    )
+    
+    # Should resolve both pages
+    trace.update.assert_called_once_with(output="Page 1 content\n\nPage 2 content")
