@@ -10,7 +10,6 @@ description: Provides specialized context, rules, and tools for implementing, co
 langgraph/
 ├── assets
 ├── modules
-│   └── langgraph @ 97320843f
 ├── references
 ├── scripts
 └── SKILL.md

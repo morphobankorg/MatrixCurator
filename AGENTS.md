@@ -799,4 +799,1382 @@ def notify_user(user_id, sender: Any):
     sender.send("user@example.com", "Hello")
     return "Success"
 ```
+# Repository Map
 
+```python
+
+.agents\memory.json
+
+.agents\rules\language-python\anti-patterns.md
+
+.agents\rules\language-python\architecture-and-structure.md
+
+.agents\rules\language-python\code-style-and-formatting.md
+
+.agents\rules\language-python\configuration-and-environment.md
+
+.agents\rules\language-python\dependency-management.md
+
+.agents\rules\language-python\documentation-and-comments.md
+
+.agents\rules\language-python\error-handling.md
+
+.agents\rules\language-python\logging-and-observability.md
+
+.agents\rules\language-python\naming-conventions.md
+
+.agents\rules\language-python\performance-and-optimization.md
+
+.agents\rules\language-python\security-and-validation.md
+
+.agents\rules\language-python\testing-standards.md
+
+.agents\rules\language-python\type-safety.md
+
+.agents\skills\docling\SKILL.md
+
+.agents\skills\dspy\SKILL.md
+
+.agents\skills\langchain\SKILL.md
+
+.agents\skills\langfuse\SKILL.md
+
+.agents\skills\langgraph\SKILL.md
+
+.agents\skills\litellm\SKILL.md
+
+.devcontainer\devcontainer.json
+
+.dockerignore
+
+.env.example
+
+.github\pull_request_template.md
+
+.rune\config
+
+.runemodules
+
+.streamlit\secrets_template.toml
+
+AGENTS.md
+
+Dockerfile
+
+LICENSE
+
+README.md
+
+ROADMAP.md
+
+apps\matrixcurator-api\pdm.lock
+
+apps\matrixcurator-api\pyproject.toml
+
+apps\matrixcurator-api\src\__init__.py
+
+apps\matrixcurator-api\src\dependencies.py:
+⋮
+│def get_client() -> MatrixCuratorClient:
+⋮
+
+apps\matrixcurator-api\src\main.py:
+⋮
+│@app.on_event("startup")
+│async def startup_event():
+⋮
+│@app.get("/health")
+│async def health_check():
+⋮
+
+apps\matrixcurator-api\src\routers\agent.py:
+⋮
+│@router.post("/extract", response_model=ExtractResponse)
+│async def extract_data(
+│    request: ExtractRequest, client: MatrixCuratorClient = Depends(get_client)
+⋮
+
+apps\matrixcurator-api\src\routers\document.py:
+⋮
+│@router.post("/parse", response_model=ParseResponse)
+│async def parse_document_endpoint(
+│    file: UploadFile = File(...), client: MatrixCuratorClient = Depends(get_client)
+⋮
+│@router.post("/nexus", response_model=NexusGenerateResponse)
+│async def generate_nexus_endpoint(
+│    request: NexusGenerateRequest, client: MatrixCuratorClient = Depends(get_client)
+⋮
+
+apps\matrixcurator-api\tests\integration\test_agent_routes.py:
+⋮
+│def test_extract_data_success():
+⋮
+│def test_extract_data_failure():
+⋮
+│def test_extract_data_validation_error():
+⋮
+
+apps\matrixcurator-api\tests\integration\test_document_routes.py:
+⋮
+│@pytest.fixture
+│def sample_nexus():
+⋮
+│def test_parse_document_txt():
+⋮
+│def test_parse_document_unsupported():
+⋮
+│def test_generate_nexus(sample_nexus):
+⋮
+│def test_generate_nexus_invalid_payload():
+⋮
+
+apps\matrixcurator-ui\pyproject.toml
+
+apps\matrixcurator-ui\src\main.py
+
+apps\matrixcurator-ui\tests\test_app.py:
+⋮
+│@pytest.fixture
+│def app():
+⋮
+│@patch("apps.streamlit.src.main.client.parse_document")
+│def test_parse_document_success(mock_parse, app):
+⋮
+
+benchmark_out.txt
+
+output.txt
+
+packages.txt
+
+packages\matrixcurator\pyproject.toml
+
+packages\matrixcurator\src\matrixcurator\__init__.py
+
+packages\matrixcurator\src\matrixcurator\client.py:
+⋮
+│class MatrixCuratorClient:
+│    def __init__(self, app_name: str = "matrixcurator", **kwargs: Any):
+│        if kwargs:
+│            new_settings = Settings(**kwargs)
+│            for key, value in new_settings.model_dump(exclude_unset=True).items():
+│                setattr(global_settings, key, value)
+│
+│        self.logger = structlog.get_logger(__name__)
+⋮
+│    def parse_document(self, content: bytes, filename: str) -> str:
+⋮
+│    async def extract_characters(
+│        self,
+│        context: str,
+│        character_indices: List[int],
+│        starting_tier: int = 2,
+│        user_id: Optional[str] = None,
+⋮
+│    def generate_nexus(
+│        self, original_nexus: str, extracted_states: List[Dict[str, Any]]
+⋮
+
+packages\matrixcurator\src\matrixcurator\config\__init__.py
+
+packages\matrixcurator\src\matrixcurator\config\main.py:
+⋮
+│class ContextStrategy(str, Enum):
+⋮
+│class OrchestrationStrategy(str, Enum):
+⋮
+│class IntelligenceStrategy(str, Enum):
+⋮
+│class Settings(LoggingSettings):
+│    model_config = SettingsConfigDict(
+│        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+⋮
+│    @property
+│    def current_context_strategy(self) -> ContextStrategy:
+⋮
+│    @property
+│    def current_orchestration_strategy(self) -> OrchestrationStrategy:
+⋮
+│    @property
+│    def current_intelligence_strategy(self) -> IntelligenceStrategy:
+⋮
+│    def get_model_for_tier(self, requested_tier: int) -> str:
+⋮
+
+packages\matrixcurator\src\matrixcurator\data.sqlite
+
+packages\matrixcurator\src\matrixcurator\exceptions.py:
+⋮
+│class MatrixCuratorError(Exception):
+⋮
+│class DocumentParseError(MatrixCuratorError):
+⋮
+│class NexusFormatError(MatrixCuratorError):
+⋮
+│class LLMServiceError(MatrixCuratorError):
+⋮
+│class ContextLengthExceededError(MatrixCuratorError):
+⋮
+
+packages\matrixcurator\src\matrixcurator\integrations\__init__.py
+
+packages\matrixcurator\src\matrixcurator\integrations\docling.py:
+⋮
+│class McpVlmEngine(ApiVlmEngine):
+│    """
+│    Custom VLM Engine for Docling that intercepts calls for MCP sampling.
+│    Falls back to litellm.completion (Gemini) if no MCP session is active or if sampling fails.
+⋮
+│    def predict_batch(self, input_batch: List[VlmEngineInput]) -> List[VlmEngineOutput]:
+⋮
+│class McpVlmConvertModel(VlmConvertModel):
+│    """
+│    Custom VlmConvertModel that injects McpVlmEngine.
+⋮
+│    def __init__(self, *args, **kwargs):
+⋮
+│class McpVlmPipeline(VlmPipeline):
+│    """
+│    Custom VlmPipeline that uses McpVlmConvertModel.
+⋮
+│    def _initialize_new_runtime_system(
+│        self, pipeline_options: VlmPipelineOptions
+⋮
+
+packages\matrixcurator\src\matrixcurator\integrations\dspy.py:
+⋮
+│class MCPAwareLM(dspy.LM):
+│    """
+│    Custom DSPy LM that intercepts calls for MCP sampling.
+│    Falls back to native dspy.LM (LiteLLM) if no MCP session is active or if sampling fails.
+⋮
+│    def forward(
+│        self,
+│        prompt: Optional[str] = None,
+│        messages: Optional[List[Dict[str, Any]]] = None,
+│        **kwargs,
+⋮
+│    async def aforward(
+│        self,
+│        prompt: Optional[str] = None,
+│        messages: Optional[List[Dict[str, Any]]] = None,
+│        **kwargs,
+⋮
+│def configure_dspy(model_name: Optional[str] = None):
+⋮
+│class CharacterExtraction(dspy.Signature):
+⋮
+│class ExtractionEvaluation(dspy.Signature):
+⋮
+│class ExtractionModule(dspy.Module):
+│    def __init__(self):
+│        super().__init__()
+│        self.extract = dspy.ChainOfThought(CharacterExtraction)
+│
+│        # Try to load compiled weights if they exist
+│        weights_path = os.path.join(
+│            os.path.dirname(__file__), "..", "weights", "gemini-1.5-pro.json"
+│        )
+│        if os.path.exists(weights_path):
+│            try:
+⋮
+│    def forward(
+│        self,
+│        document_text: str,
+│        character_index: int,
+│        previous_errors: Optional[str] = None,
+⋮
+│class EvaluationModule(dspy.Module):
+│    def __init__(self):
+│        super().__init__()
+│        self.evaluate = dspy.ChainOfThought(ExtractionEvaluation)
+│
+│        # Try to load compiled weights if they exist
+│        weights_path = os.path.join(
+│            os.path.dirname(__file__), "..", "weights", "gemini-1.5-pro.json"
+│        )
+│        if os.path.exists(weights_path):
+│            try:
+⋮
+│    def forward(self, document_text: str, extracted_data: Dict[str, Any]):
+⋮
+
+packages\matrixcurator\src\matrixcurator\integrations\litellm.py:
+⋮
+│def _format_mcp_to_litellm(mcp_result: Any, model: str) -> ModelResponse:
+⋮
+│async def acompletion(*args, **kwargs) -> ModelResponse:
+⋮
+│def completion(*args, **kwargs) -> ModelResponse:
+⋮
+
+packages\matrixcurator\src\matrixcurator\integrations\mcp.py:
+⋮
+│class MCPSamplingError(Exception):
+⋮
+│async def sample_message(
+│    session: Any,
+│    messages: List[Dict[str, Any]],
+│    model_preferences: Optional[Dict[str, Any]] = None,
+│    system_prompt: Optional[str] = None,
+│    include_context: Optional[str] = None,
+│    temperature: Optional[float] = None,
+│    max_tokens: Optional[int] = None,
+⋮
+
+packages\matrixcurator\src\matrixcurator\integrations\prompts.py:
+⋮
+│class StateModel(BaseModel):
+⋮
+│class CharacterModel(BaseModel):
+⋮
+│class CharacterStateModel(BaseModel):
+⋮
+│class ExtractionResult(BaseModel):
+⋮
+│async def extract_characters_and_states(
+│    text: str, indices: Optional[List[int]] = None
+⋮
+
+packages\matrixcurator\src\matrixcurator\integrations\supabase.py:
+⋮
+│def get_supabase_client() -> Client:
+⋮
+│def get_client() -> Client:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\__init__.py
+
+packages\matrixcurator\src\matrixcurator\modules\agent\graph.py:
+⋮
+│def build_graph():
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\agent\memory.py:
+⋮
+│def get_store():
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\agent\nodes.py:
+⋮
+│class CharacterStateOutput(BaseModel):
+⋮
+│def llm_error_handler(state: AgentState, error: Exception) -> Command:
+⋮
+│def extractor_agent(state: AgentState) -> Dict[str, Any]:
+⋮
+│def evaluator_agent(state: AgentState) -> Dict[str, Any]:
+⋮
+│def supervisor_node(state: AgentState) -> Command:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\agent\schemas.py:
+⋮
+│class ExtractRequest(BaseModel):
+⋮
+│class ExtractResponse(BaseModel):
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\agent\state.py:
+⋮
+│@dataclass
+│class ContextSchema:
+⋮
+│class AgentState(MessagesState):
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\document\repositories\docx.py:
+⋮
+│def read_docx(file_content: bytes, **kwargs) -> str:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\document\repositories\nexus.py:
+⋮
+│def read_nexus(file_content: bytes, **kwargs) -> str:
+⋮
+│def write_nexus(
+│    original_nexus: str, extracted_states: List[Dict[str, Any]], **kwargs
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\document\repositories\pdf.py:
+⋮
+│def read_pdf(file_content: bytes, **kwargs) -> str:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\document\repositories\txt.py:
+⋮
+│def read_txt(file_content: bytes, **kwargs) -> str:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\document\schemas.py:
+⋮
+│class ParseResponse(BaseModel):
+⋮
+│class NexusGenerateRequest(BaseModel):
+⋮
+│class NexusGenerateResponse(BaseModel):
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\document\services.py:
+⋮
+│def parse_document(file_content: bytes, filename: str, **kwargs) -> str:
+⋮
+│def generate_document(
+│    original_nexus: str, extracted_states: List[Dict[str, Any]], **kwargs
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\graph.py:
+⋮
+│def build_graph():
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\memory.py:
+⋮
+│def get_store():
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\nodes.py:
+⋮
+│class CharacterStateOutput(BaseModel):
+⋮
+│def llm_error_handler(state: AgentState, error: Exception) -> Command:
+⋮
+│def extractor_agent(state: AgentState) -> Dict[str, Any]:
+⋮
+│def evaluator_agent(state: AgentState) -> Dict[str, Any]:
+⋮
+│def supervisor_node(state: AgentState) -> Command:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\retrieval\repositories\sqlite.py:
+⋮
+│def _get_embedding_dimension() -> int:
+⋮
+│class DocumentChunkMeta(Base):
+⋮
+│def get_engine():
+⋮
+│def insert_chunks(chunks: List[DocumentChunk]) -> None:
+⋮
+│def query_similar_chunks(
+│    embedding: List[float],
+│    match_threshold: float = 0.7,
+│    match_count: int = 5,
+│    document_id: Optional[str] = None,
+│    parser_name: Optional[str] = None,
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\retrieval\repositories\supabase.py:
+⋮
+│def insert_chunks(chunks: List[DocumentChunk]) -> None:
+⋮
+│def query_similar_chunks(
+│    embedding: List[float],
+│    match_threshold: float = 0.7,
+│    match_count: int = 5,
+│    document_id: str = None,
+│    parser_name: str = None,
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\retrieval\schemas.py:
+⋮
+│class ChunkMetadata(TypedDict, total=False):
+⋮
+│class DocumentChunk(TypedDict):
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\retrieval\services.py:
+⋮
+│@retry(
+│    stop=stop_after_attempt(5),
+│    wait=wait_exponential(multiplier=1, min=2, max=15),
+│    retry=retry_if_exception_type((RateLimitError, APIConnectionError, APIError)),
+│)
+│async def _fetch_embeddings_with_retry(texts: list[str]):
+⋮
+│def _get_insert_chunks():
+⋮
+│def _get_query_similar_chunks():
+⋮
+│def chunk_text(
+│    text: str,
+│    document_id: str,
+│    chunk_size: int = 1000,
+│    chunk_overlap: int = 200,
+│    parser_name: Optional[str] = None,
+⋮
+│async def embed_and_store_chunks(chunks: List[DocumentChunk]) -> None:
+⋮
+│async def retrieve_context(
+│    query: str,
+│    match_count: int = 5,
+│    document_id: Optional[str] = None,
+│    parser_name: Optional[str] = None,
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\schemas.py:
+⋮
+│class ExtractRequest(BaseModel):
+⋮
+│class ExtractResponse(BaseModel):
+⋮
+│class Character(TypedDict):
+⋮
+│class State(TypedDict):
+⋮
+│class CharacterState(TypedDict):
+⋮
+│class Document(TypedDict):
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\state.py:
+⋮
+│@dataclass
+│class ContextSchema:
+⋮
+│class AgentState(MessagesState):
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\tools\__init__.py
+
+packages\matrixcurator\src\matrixcurator\modules\tools\docling.py:
+⋮
+│@tool
+│def parse_with_docling(
+│    file_content: bytes, filename: str, pages: list[int] | None = None
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\tools\docx.py:
+⋮
+│@tool
+│def parse_with_docx(file_content: bytes, filename: str) -> str:
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\tools\pymupdf.py:
+⋮
+│@tool
+│def parse_with_pymupdf(
+│    file_content: bytes, filename: str, pages: list[int] | None = None
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\tools\re.py:
+⋮
+│@tool
+│def generate_with_re(
+│    original_nexus: str, extracted_states: List[Dict[str, Any]]
+⋮
+
+packages\matrixcurator\src\matrixcurator\modules\tools\txt.py:
+⋮
+│@tool
+│def parse_with_txt(file_content: bytes, filename: str) -> str:
+⋮
+
+packages\matrixcurator\src\matrixcurator\utils\__init__.py
+
+packages\matrixcurator\src\matrixcurator\utils\concurrency.py:
+⋮
+│class AsyncRateLimiter:
+│    """Rate limiter that restricts execution to a maximum number of calls per time period."""
+│
+│    def __init__(self, max_calls: int, time_period: float = 1.0) -> None:
+⋮
+│    async def acquire(self) -> None:
+⋮
+│class AsyncConcurrencyManager:
+│    """Context manager combining asyncio.Semaphore and an optional AsyncRateLimiter."""
+│
+│    def __init__(
+│        self, max_concurrent: int, rate_limiter: Optional[AsyncRateLimiter] = None
+⋮
+│    async def __aenter__(self) -> "AsyncConcurrencyManager":
+⋮
+│    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+⋮
+
+packages\matrixcurator\src\matrixcurator\utils\models.py:
+⋮
+│def get_available_models() -> List[str]:
+⋮
+
+packages\matrixcurator\tests\conftest.py:
+⋮
+│@pytest.fixture
+│def sample_nexus():
+⋮
+
+packages\matrixcurator\tests\integration\test_docling_pipeline.py:
+⋮
+│def create_mock_pdf() -> bytes:
+⋮
+│@patch("matrixcurator.integrations.docling.completion")
+│def test_docling_tool_uses_gemini_fallback(mock_completion):
+⋮
+
+packages\matrixcurator\tests\integration\test_hitl_workflow.py:
+⋮
+│@pytest.fixture
+│def hitl_graph():
+⋮
+│@patch("matrixcurator.modules.nodes.parse_document")
+⋮
+│def test_full_hitl_workflow(mock_eval, mock_extract, mock_discover, mock_parse, hitl_graph):
+⋮
+
+packages\matrixcurator\tests\integration\test_strategies.py:
+⋮
+│@pytest.fixture
+│def mock_dspy_extraction():
+⋮
+│@pytest.fixture
+│def mock_litellm_extraction():
+⋮
+│@pytest.fixture
+│def mock_retrieve_context():
+⋮
+│@pytest.mark.asyncio
+│async def test_extraction_node_strategies(mock_dspy_extraction, mock_litellm_extraction, mock_retri
+⋮
+│def test_evaluation_node_routing_strategies():
+⋮
+
+packages\matrixcurator\tests\unit\integrations\test_docling.py:
+⋮
+│@pytest.fixture
+│def mock_mcp_session():
+⋮
+│@pytest.fixture
+│def mock_vlm_input():
+⋮
+│def test_mcp_vlm_convert_model_forces_api_options():
+⋮
+│@patch("matrixcurator.integrations.docling.completion")
+│def test_mcp_vlm_engine_litellm_fallback(mock_completion, mock_vlm_input):
+⋮
+│@patch("matrixcurator.integrations.docling.sample_message")
+│def test_mcp_vlm_engine_predict_batch_mcp(mock_sample_message, mock_vlm_input, mock_mcp_session):
+│    # Arrange
+│    options = ApiVlmOptions(url="http://localhost:8000", prompt="test", response_format=ResponseFor
+⋮
+│    async def mock_sample(*args, **kwargs):
+⋮
+
+packages\matrixcurator\tests\unit\integrations\test_dspy.py:
+⋮
+│@pytest.fixture
+│def mock_mcp_session():
+⋮
+│@patch("matrixcurator.integrations.dspy.DSPyInstrumentor")
+│def test_configure_dspy(mock_instrumentor):
+⋮
+│@pytest.mark.asyncio
+│@patch("dspy.LM.aforward")
+│async def test_mcp_aware_lm_aforward_with_session(mock_super_aforward, mock_mcp_session):
+⋮
+│@pytest.mark.asyncio
+│@patch("dspy.LM.aforward")
+│async def test_mcp_aware_lm_aforward_without_session(mock_super_aforward):
+⋮
+│@pytest.mark.asyncio
+│@patch("dspy.LM.aforward")
+│async def test_mcp_aware_lm_aforward_fallback(mock_super_aforward, mock_mcp_session):
+⋮
+
+packages\matrixcurator\tests\unit\integrations\test_litellm.py:
+⋮
+│@pytest.fixture
+│def mock_mcp_session():
+⋮
+│@pytest.mark.asyncio
+│@patch("matrixcurator.integrations.litellm.litellm.acompletion")
+│async def test_acompletion_with_mcp_session(mock_litellm_acompletion, mock_mcp_session):
+⋮
+│@pytest.mark.asyncio
+│@patch("matrixcurator.integrations.litellm.litellm.acompletion")
+│async def test_acompletion_without_mcp_session(mock_litellm_acompletion):
+⋮
+│@pytest.mark.asyncio
+│@patch("matrixcurator.integrations.litellm.litellm.acompletion")
+│async def test_acompletion_mcp_fallback(mock_litellm_acompletion, mock_mcp_session):
+⋮
+│@patch("matrixcurator.integrations.litellm.litellm.completion")
+│def test_completion_without_mcp_session(mock_litellm_completion):
+⋮
+
+packages\matrixcurator\tests\unit\integrations\test_mcp.py:
+⋮
+│@pytest.mark.asyncio
+│async def test_sample_message_success():
+⋮
+│@pytest.mark.asyncio
+│async def test_sample_message_with_images():
+⋮
+│@pytest.mark.asyncio
+│async def test_sample_message_failure():
+⋮
+
+packages\matrixcurator\tests\unit\modules\test_retrieval.py:
+⋮
+│def test_chunk_text():
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_embed_and_store_chunks(mock_get_insert, mock_fetch):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_retrieve_context(mock_get_query, mock_fetch):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_embed_and_store_chunks_batching(mock_sleep, mock_get_insert, mock_fetch):
+│    mock_insert = MagicMock()
+⋮
+│    def side_effect(texts):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_embed_and_store_chunks_rate_limit_retry(mock_get_insert, mock_aembedding):
+⋮
+│@patch('matrixcurator.modules.retrieval.repositories.supabase.get_client')
+│def test_insert_chunks_repository(mock_get_client):
+⋮
+│@patch('matrixcurator.modules.retrieval.repositories.supabase.get_client')
+│def test_query_similar_chunks_repository(mock_get_client):
+⋮
+
+packages\matrixcurator\tests\unit\modules\test_sqlite_repository.py:
+⋮
+│@pytest.fixture
+│def temp_sqlite_db(tmp_path):
+⋮
+│def test_insert_and_query_sqlite_vector(temp_sqlite_db):
+⋮
+
+packages\matrixcurator\tests\unit\modules\test_tools.py:
+⋮
+│@patch("matrixcurator.modules.tools.pymupdf.fitz.open")
+│def test_pymupdf_tool_success(mock_fitz_open):
+⋮
+│@patch("matrixcurator.modules.tools.pymupdf.fitz.open")
+│def test_pymupdf_tool_page_filtering(mock_fitz_open):
+⋮
+│@patch("matrixcurator.modules.tools.pymupdf.fitz.open")
+│def test_pymupdf_tool_failure(mock_fitz_open):
+⋮
+│def test_txt_tool_success():
+⋮
+│def test_re_tool_success():
+⋮
+│@patch("matrixcurator.modules.tools.docling.DocumentConverter")
+│def test_docling_tool_success(mock_converter_class):
+⋮
+│@patch("matrixcurator.modules.tools.docling.DocumentConverter")
+│def test_docling_tool_page_filtering(mock_converter_class):
+⋮
+
+packages\matrixcurator\tests\unit\test_client.py:
+⋮
+│@pytest.fixture
+│def client():
+⋮
+│@patch("matrixcurator.client.parse_document")
+│@patch("matrixcurator.client.posthog.capture")
+│def test_parse_document(mock_capture, mock_parse, client):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_extract_characters_success(mock_capture, mock_ainvoke, client):
+⋮
+│@patch("matrixcurator.client.generate_document")
+│@patch("matrixcurator.client.posthog.capture")
+│def test_generate_nexus(mock_capture, mock_generate, client):
+⋮
+
+packages\matrixcurator\tests\unit\utils\test_concurrency.py:
+⋮
+│@pytest.mark.asyncio
+│async def test_async_rate_limiter_respects_limit() -> None:
+⋮
+│@pytest.mark.asyncio
+│async def test_async_concurrency_manager_semaphore() -> None:
+│    manager = AsyncConcurrencyManager(max_concurrent=1)
+│
+│    async def worker() -> None:
+⋮
+│@pytest.mark.asyncio
+│async def test_async_concurrency_manager_with_rate_limiter() -> None:
+│    limiter = AsyncRateLimiter(max_calls=1, time_period=0.1)
+⋮
+│    async def worker() -> None:
+⋮
+
+pdm.lock
+
+pyproject.toml
+
+pytest.ini
+
+requirements.txt
+
+scripts\__init__.py:
+│def lazy_import(module_name, submodules, submod_attrs, eager="auto"):
+│    import importlib
+⋮
+│    def __getattr__(name):
+⋮
+│def __dir__():
+⋮
+
+scripts\compile_weights.py:
+⋮
+│def extraction_metric(
+│    example: dspy.Example, pred: dspy.Prediction, trace=None
+⋮
+│def load_examples() -> list[dspy.Example]:
+⋮
+│def main():
+⋮
+
+scripts\parse_documents.py:
+⋮
+│def main() -> None:
+│    parser = argparse.ArgumentParser(description="Pre-parse documents for benchmarks")
+⋮
+│    for idx, row in tqdm(
+│        df_docs.iterrows(), total=len(df_docs), desc="Parsing documents"
+│    ):
+│        existing_text = row.get("text")
+⋮
+│        def get_existing_page_content(parser_name: str, page_num: int) -> str | None:
+⋮
+
+src\benchmark\__init__.py
+
+src\benchmark\__main__.py:
+⋮
+│def main():
+⋮
+
+src\benchmark\agents_benchmark.py:
+⋮
+│async def agent_task(*, item: Any, df_docs: pd.DataFrame, **kwargs) -> str:
+⋮
+│def run_agents_benchmark():
+│    langfuse, dataset = setup()
+│
+⋮
+│    def process_permutation(routing, intelligence):
+⋮
+
+src\benchmark\benchmark_agents.py:
+⋮
+│@fixture(scope="session")
+│def docs_dict(df_docs: pd.DataFrame):
+⋮
+│@benchmark(dataset_name="character_states")
+│@parametrize("routing, intelligence", PERMUTATIONS)
+│async def benchmark_agents(
+│    dataset_item, routing, intelligence, docs_dict, langfuse_trace
+⋮
+
+src\benchmark\benchmark_retrieval.py:
+⋮
+│async def _execute_retrieval_benchmark(
+│    dataset_item: Any,
+│    parser_name: str,
+│    valid_docs_per_parser: dict[str, set[str] | None],
+│    langfuse_trace: Any,
+⋮
+│@benchmark(dataset_name="character_states")
+│async def benchmark_retrieval_docling(
+│    dataset_item, valid_docs_per_parser, fixture_vector_cache, langfuse_trace
+⋮
+│@benchmark(dataset_name="character_states")
+│async def benchmark_retrieval_pymupdf(
+│    dataset_item, valid_docs_per_parser, fixture_vector_cache, langfuse_trace
+⋮
+│@benchmark(dataset_name="character_states")
+│async def benchmark_retrieval_docx(
+│    dataset_item, valid_docs_per_parser, fixture_vector_cache, langfuse_trace
+⋮
+│@benchmark(dataset_name="character_states")
+│async def benchmark_retrieval_txt(
+│    dataset_item, valid_docs_per_parser, fixture_vector_cache, langfuse_trace
+⋮
+
+src\benchmark\benchmark_tools.py:
+⋮
+│class ToolParser(Protocol):
+│    def invoke(self, args: dict[str, Any]) -> str: ...
+│
+⋮
+│@fixture(scope="session")
+│def docs_dict(fixture_parsed_cache: pd.DataFrame) -> dict[str, Any]:
+⋮
+│def skip_non_pdf(kwargs: dict[str, Any]) -> bool:
+⋮
+│def skip_non_docx(kwargs: dict[str, Any]) -> bool:
+⋮
+│def skip_non_txt(kwargs: dict[str, Any]) -> bool:
+⋮
+│async def _execute_tool_benchmark(
+│    dataset_item: Any,
+│    tool_name: str,
+│    parser: ToolParser,
+│    default_ext: str,
+│    requires_pages: bool,
+│    docs_dict: dict[str, Any],
+│    langfuse_trace: Any,
+⋮
+│@benchmark(dataset_name="character_states", skip_if=skip_non_pdf)
+│async def benchmark_tool_docling(
+│    dataset_item: Any, docs_dict: dict[str, Any], langfuse_trace: Any
+⋮
+│@benchmark(dataset_name="character_states", skip_if=skip_non_pdf)
+│async def benchmark_tool_pymupdf(
+│    dataset_item: Any, docs_dict: dict[str, Any], langfuse_trace: Any
+⋮
+│@benchmark(dataset_name="character_states", skip_if=skip_non_docx)
+│async def benchmark_tool_docx(
+│    dataset_item: Any, docs_dict: dict[str, Any], langfuse_trace: Any
+⋮
+│@benchmark(dataset_name="character_states", skip_if=skip_non_txt)
+│async def benchmark_tool_txt(
+│    dataset_item: Any, docs_dict: dict[str, Any], langfuse_trace: Any
+⋮
+
+src\benchmark\confbenchmark.py:
+⋮
+│@fixture(scope="session")
+│def fixture_parsed_cache(limit: int):
+⋮
+│@fixture(scope="session")
+│def df_docs(fixture_parsed_cache):
+⋮
+│@fixture(scope="session")
+│def fixture_vector_cache(fixture_parsed_cache):
+⋮
+│def _get_valid_document_ids_for_parser(parser_name: str) -> Optional[Set[str]]:
+⋮
+│@fixture(scope="session")
+│def valid_docs_per_parser(fixture_vector_cache):
+⋮
+│@fixture(scope="session")
+│async def fixture_synced_langfuse(skip_sync: bool, lf_client: Any, fixture_parsed_cache):
+⋮
+
+src\benchmark\config\__init__.py
+
+src\benchmark\config\main.py:
+⋮
+│class BenchmarkSettings(BaseSettings):
+⋮
+
+src\benchmark\core\__init__.py
+
+src\benchmark\core\decorators.py:
+⋮
+│def benchmark(
+│    dataset_name: str = "default",
+│    skip_if: Optional[Callable[[Any], bool]] = None,
+│) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+│    """Flag an async function as a benchmark."""
+│
+│    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+│        if not hasattr(func, "__benchmark_metadata__"):
+⋮
+│        @functools.wraps(func)
+│        def wrapper(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def parametrize(
+│    argnames: str, argvalues: List[Any]
+│) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+│    """Parse string argnames and store them as metadata for execution expansion."""
+│
+│    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+│        if not hasattr(func, "__benchmark_metadata__"):
+⋮
+│        @functools.wraps(func)
+│        def wrapper(*args: Any, **kwargs: Any) -> Any:
+⋮
+│def fixture(
+│    scope: str = "function", name: Optional[str] = None
+│) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+│    """Register a function (sync or async) as a dependency."""
+│
+│    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+│        fixture_name = name if name else func.__name__
+⋮
+│        @functools.wraps(func)
+│        def wrapper(*args: Any, **kwargs: Any) -> Any:
+⋮
+
+src\benchmark\core\exceptions.py:
+⋮
+│class SkipBenchmark(Exception):
+⋮
+│class FailBenchmark(Exception):
+⋮
+
+src\benchmark\core\execution.py:
+⋮
+│def expand_permutations(
+│    func: Callable[..., Any],
+⋮
+│async def execute_single_run(func: Callable[..., Any], kwargs: Dict[str, Any]) -> Any:
+⋮
+
+src\benchmark\core\fixtures.py:
+⋮
+│async def resolve_fixtures(
+│    func: Callable[..., Any],
+│    session_cache: Dict[str, Any],
+│    extra_kwargs: Dict[str, Any] | None = None,
+⋮
+
+src\benchmark\core\registry.py:
+⋮
+│def add_benchmark(func: Callable[..., Any], metadata: Dict[str, Any]) -> None:
+⋮
+│def add_fixture(name: str, func: Callable[..., Any], scope: str) -> None:
+⋮
+│def get_benchmarks() -> List[Dict[str, Any]]:
+⋮
+│def get_fixtures() -> Dict[str, Dict[str, Any]]:
+⋮
+
+src\benchmark\core\runner.py:
+⋮
+│def discover_benchmarks(path: str, filters: list[str] = None) -> None:
+⋮
+│async def run_all(workers: int, limit: int, skip_sync: bool) -> None:
+│    """
+│    Execute all discovered benchmarks with the specified concurrency limit.
+⋮
+│    async def run_item(
+│        func: Callable[..., Any],
+│        kwargs: Dict[str, Any],
+│        item_data: Any,
+│        dataset_name: str,
+│        dataset_item: Any,
+│    ) -> None:
+│        async with semaphore:
+│            trace_name = f"{func.__name__}_{dataset_name}"
+│
+│            captured_output = {"value": None}
+│
+│            def langfuse_trace(output: Any = None) -> Any:
+│                import langfuse as lf
+│                client = lf.get_client()
+│                if output is not None:
+│                    captured_output["value"] = output
+⋮
+│                class DummyTrace:
+│                    @property
+│                    def id(self):
+│                        try:
+│                            return client.get_current_trace_id()
+│                        except Exception:
+⋮
+│            @observe(name=trace_name)
+│            async def _execute_traced_item():
+⋮
+
+src\benchmark\data\character_states.parquet
+
+src\benchmark\data\documents.parquet
+
+src\benchmark\modules\dataset\repositories\langfuse.py:
+⋮
+│@retry(
+│    stop=stop_after_attempt(3),
+│    wait=wait_exponential(multiplier=1, min=2, max=10),
+│    reraise=True,
+│)
+│def _sync_create_dataset_item(client: Langfuse, dataset_name: str, item: Any) -> None:
+⋮
+│async def upsert_dataset_item(client: Langfuse, dataset_name: str, item: Any) -> None:
+⋮
+
+src\benchmark\modules\dataset\repositories\parquet.py:
+⋮
+│def read_documents(file_path: str) -> pd.DataFrame:
+⋮
+│def write_documents(df: pd.DataFrame, file_path: str) -> None:
+⋮
+│def read_character_states(file_path: str) -> pd.DataFrame:
+⋮
+
+src\benchmark\modules\dataset\services.py:
+⋮
+│def preparse_documents(
+│    parquet_repo: Any, file_path: str, force: bool = False, limit: int | None = None
+│) -> pd.DataFrame:
+│    """Loads documents.parquet, iterates over rows, parses missing text using extractors, and saves
+⋮
+│    for idx, row in tqdm(
+│        df_docs.iterrows(), total=len(df_docs), desc="Pre-parsing documents"
+│    ):
+│        document_id = row.get("id", row.get("document_id", f"idx_{idx}"))
+⋮
+│        def get_existing_page_content(parser_name: str, page_num: int) -> str | None:
+⋮
+│async def sync_datasets(
+│    parquet_repo: Any, langfuse_repo: Any, client: Langfuse, df_docs: pd.DataFrame
+⋮
+
+src\benchmark\modules\evaluation\repositories\langfuse.py:
+⋮
+│def create_score_config(
+│    client: Langfuse, name: str, categories: list[dict[str, Any]], description: str
+⋮
+│def create_evaluator(
+│    client: Langfuse,
+│    evaluator_name: str,
+│    prompt_text: str,
+│    score_config_id: str,
+│    categories: list[str],
+⋮
+│def bind_evaluation_rule(
+│    client: Langfuse, rule_name: str, evaluator_name: str, dataset_id: str
+⋮
+
+src\benchmark\modules\evaluation\services.py:
+⋮
+│def setup_evaluators(langfuse_repo: Any, client: Langfuse) -> None:
+⋮
+
+src\benchmark\modules\retrieval\services.py:
+⋮
+│def auto_ingest_vectors(df_docs: pd.DataFrame) -> None:
+⋮
+
+tests\integration\benchmark\test_benchmark_runner_integration.py:
+⋮
+│@benchmark(dataset_name="test_dataset")
+│async def dummy_benchmark(dataset_item, item, langfuse_trace):
+⋮
+│@pytest.mark.asyncio
+│async def test_run_all_integration():
+│    # Setup our dummy benchmark in the registry
+│    src.benchmark.core.registry._BENCHMARKS = [
+│        {"func": dummy_benchmark, "metadata": {"dataset_name": "test_dataset"}}
+⋮
+│    def mock_send(request, *args, **kwargs):
+⋮
+│    with patch.dict(os.environ, {
+│        "LANGFUSE_PUBLIC_KEY": "pk-lf-123",
+│        "LANGFUSE_SECRET_KEY": "sk-lf-123",
+│        "LANGFUSE_HOST": "https://dummy.langfuse.com"
+│    }):
+│        with patch("httpx.Client.send", side_effect=mock_send) as mock_send_call:
+│            with patch("src.benchmark.core.runner.resolve_fixtures", new_callable=AsyncMock) as moc
+│                
+│                # Mock langfuse client
+│                mock_lf_client = MagicMock()
+│                mock_lf_client.get_current_trace_id.return_value = "trace_123"
+│                
+│                with patch("langfuse.get_client", return_value=mock_lf_client):
+│                    # provide trace closure and item
+│                    async def resolve_side_effect(func, session_cache, extra_kwargs):
+│                        if func == benchmark_setup:
+│                            return {}
+│                        return {
+│                            "dataset_item": extra_kwargs["dataset_item"],
+│                            "item": extra_kwargs["item"],
+│                            "langfuse_trace": extra_kwargs["langfuse_trace"]
+⋮
+│@pytest.mark.asyncio
+│async def test_parquet_clone_generation():
+⋮
+
+tests\unit\benchmark\core\test_decorators.py:
+⋮
+│@patch("src.benchmark.core.decorators.add_benchmark")
+│def test_benchmark_decorator(mock_add_benchmark):
+│    @benchmark(dataset_name="test_dataset")
+│    def sample_func():
+⋮
+│def test_parametrize_decorator():
+│    @parametrize("arg1", [1, 2])
+│    @parametrize("arg2,arg3", [(3, 4)])
+│    def sample_func():
+⋮
+│@patch("src.benchmark.core.decorators.add_fixture")
+│def test_fixture_decorator(mock_add_fixture):
+│    @fixture(scope="session", name="custom_name")
+│    def sample_fixture():
+⋮
+│@patch("src.benchmark.core.decorators.add_fixture")
+│def test_fixture_decorator_default_name(mock_add_fixture):
+│    @fixture(scope="function")
+│    def default_name_fixture():
+⋮
+
+tests\unit\benchmark\core\test_execution.py:
+⋮
+│def test_expand_permutations_no_metadata():
+│    def func():
+⋮
+│def test_expand_permutations_multiple():
+│    @parametrize("b", [3, 4])
+│    @parametrize("a", [1, 2])
+│    def func():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_single_run_sync():
+│    def sync_func(x):
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_single_run_async():
+│    async def async_func(x):
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_single_run_skip_fail(caplog):
+│    caplog.set_level("DEBUG")
+│    def skip_func():
+⋮
+│    def fail_func():
+⋮
+
+tests\unit\benchmark\core\test_fixtures.py:
+⋮
+│@pytest.fixture
+│def mock_get_fixtures():
+⋮
+│@pytest.mark.asyncio
+│async def test_resolve_fixtures_basic(mock_get_fixtures):
+│    def fix1():
+⋮
+│    async def fix2(fix1):
+⋮
+│    async def target(fix2, extra_arg):
+⋮
+│@pytest.mark.asyncio
+│async def test_resolve_fixtures_session_cache(mock_get_fixtures):
+│    call_count = 0
+│    def session_fix():
+⋮
+│    def target1(session_fix):
+⋮
+│    def target2(session_fix):
+⋮
+
+tests\unit\benchmark\core\test_runner.py:
+⋮
+│def test_discover_benchmarks(tmp_path):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_run_all(mock_get_benchmarks, mock_langfuse):
+│    mock_lf = create_autospec(langfuse.Langfuse, instance=True)
+⋮
+│    async def sample_bench(**kwargs):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_run_all_skip_fail_handled(mock_get_benchmarks, mock_langfuse):
+│    mock_lf = create_autospec(langfuse.Langfuse, instance=True)
+⋮
+│    async def failing_bench(**kwargs):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_run_all_skip_if(mock_get_benchmarks, mock_langfuse):
+│    mock_lf = create_autospec(langfuse.Langfuse, instance=True)
+⋮
+│    async def sample_bench(**kwargs):
+⋮
+│    def skip_condition(kwargs):
+⋮
+│@pytest.mark.asyncio
+⋮
+│async def test_run_all_dataset_run_item_creation(mock_get_benchmarks, mock_langfuse):
+│    mock_lf = create_autospec(langfuse.Langfuse, instance=True)
+⋮
+│    async def successful_bench(langfuse_trace, **kwargs):
+⋮
+│    with patch("langfuse.get_client", return_value=mock_lf):
+│        mock_lf.get_current_trace_id.return_value = "trace_abc"
+│        with patch("src.benchmark.core.runner.resolve_fixtures", new_callable=AsyncMock) as mock_re
+│            # Provide the langfuse_trace closure that's injected by run_all
+│            async def resolve_side_effect(func, session_cache, extra_kwargs):
+│                if func.__name__ == "benchmark_setup":
+│                    return {}
+⋮
+
+tests\unit\benchmark\test_benchmark_tools.py:
+⋮
+│class MockDatasetItem:
+│    def __init__(self, input_data):
+⋮
+│def test_skip_conditions():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_success():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_missing_text():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_missing_page():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_success_with_list():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_missing_text_empty_list():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_nan_handling():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_handles_numpy_pages():
+⋮
+│@pytest.mark.asyncio
+│async def test_execute_tool_benchmark_doc_not_found():
+⋮
+
+tests\unit\scripts\test_parse_documents.py:
+⋮
+│@pytest.fixture
+│def mock_args():
+⋮
+│@pytest.fixture
+│def sample_df():
+⋮
+│@patch("scripts.parse_documents.pd.read_parquet")
+⋮
+│def test_parse_documents_success(
+│    mock_txt,
+│    mock_docling,
+│    mock_pymupdf,
+│    mock_fitz_open,
+│    mock_to_parquet,
+│    mock_read_parquet,
+│    sample_df,
+│    mock_args,
+⋮
+│@patch("scripts.parse_documents.pd.read_parquet")
+⋮
+│def test_parse_documents_error_boundary(
+│    mock_docling,
+│    mock_pymupdf,
+│    mock_fitz_open,
+│    mock_to_parquet,
+│    mock_read_parquet,
+│    mock_args,
+│):
+│    df = pd.DataFrame(
+│        {
+│            "document_id": ["doc1"],
+│            "mime_type": ["application/pdf"],
+│            "filename": ["test1.pdf"],
+│            "file_bytes": [b"pdf content"],
+│        }
+⋮
+│    def pymupdf_side_effect(args_dict, *args, **kwargs):
+⋮
+
+```

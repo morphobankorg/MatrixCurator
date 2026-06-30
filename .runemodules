@@ -1,3 +1,15 @@
 [runemodule ".agents/rules/language-python"]
 	url = https://github.com/aquiveal/rune/tree/main/rules/language-python
 	path = .agents/rules/language-python
+[runemodule ".agents/skills/langfuse/modules/langfuse-docs"]
+	url = https://github.com/langfuse/langfuse-docs/tree/main
+	path = .agents/skills/langfuse/modules/langfuse-docs
+[runemodule ".agents/skills/langfuse/modules/langfuse-python"]
+	url = https://github.com/langfuse/langfuse-python/tree/main
+	path = .agents/skills/langfuse/modules/langfuse-python
+[runemodule ".agents/skills/langfuse/modules/langfuse"]
+	url = https://github.com/langfuse/langfuse/tree/main
+	path = .agents/skills/langfuse/modules/langfuse
+[runemodule ".agents/skills/lume-python/modules/lume-python"]
+	url = https://github.com/morphobankorg/lume-python/tree/main
+	path = .agents/skills/lume-python/modules/lume-python
