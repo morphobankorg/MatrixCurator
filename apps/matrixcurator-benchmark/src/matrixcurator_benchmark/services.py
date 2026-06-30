@@ -94,44 +94,43 @@ async def run_dataset_benchmark(
             item_id = getattr(item, "id", "unknown")
             logger.info("Processing benchmark item", item_index=index + 1, total_items=len(filtered_items), document_id=doc_id, item_id=item_id)
             
-            trace = lanfuse_client.trace(
-                name=run_name,
-                input=item.input,
-                tags=["benchmark"]
+            context_manager = lanfuse_client.start_as_current_observation(
+                name=run_name, as_type="span", input=item.input
             )
             
-            if not trace:
+            if not context_manager:
                 return
 
-            try:
-                await process_fn(item, trace)
-                
-                await asyncio.to_thread(
-                    item.link, trace, run_name
-                )
-            except SkipBenchmark:
-                pass
-            except FailBenchmark as e:
-                logger.error(
-                    "Benchmark failed for item",
-                    item_id=item_id,
-                    document_id=doc_id,
-                    error=str(e),
-                )
-                trace.update(level="ERROR", status_message=str(e))
-                await asyncio.to_thread(
-                    item.link, trace, run_name
-                )
-            except Exception as e:
-                logger.exception(
-                    "Unexpected error for item",
-                    item_id=item_id,
-                    document_id=doc_id,
-                )
-                trace.update(level="ERROR", status_message=str(e))
-                await asyncio.to_thread(
-                    item.link, trace, run_name
-                )
+            with context_manager as trace:
+                try:
+                    await process_fn(item, trace)
+                    
+                    await asyncio.to_thread(
+                        item.link, trace, run_name
+                    )
+                except SkipBenchmark:
+                    pass
+                except FailBenchmark as e:
+                    logger.error(
+                        "Benchmark failed for item",
+                        item_id=item_id,
+                        document_id=doc_id,
+                        error=str(e),
+                    )
+                    trace.update(level="ERROR", status_message=str(e))
+                    await asyncio.to_thread(
+                        item.link, trace, run_name
+                    )
+                except Exception as e:
+                    logger.exception(
+                        "Unexpected error for item",
+                        item_id=item_id,
+                        document_id=doc_id,
+                    )
+                    trace.update(level="ERROR", status_message=str(e))
+                    await asyncio.to_thread(
+                        item.link, trace, run_name
+                    )
 
     await asyncio.gather(*[_run(item, index) for index, item in enumerate(filtered_items)])
     logger.info("Finished benchmark run", run_name=run_name)
