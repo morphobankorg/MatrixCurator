@@ -56,7 +56,37 @@ async def benchmark_agents(
     input_data = dataset_item.input
     document_id = input_data.get("document_id")
     character_index = input_data.get("character_index", 1)
-    pages = input_data.get("pages", [1])
+    if not pages or (hasattr(pages, "__len__") and len(pages) == 0):
+        # Resolve all available pages from the parsed text
+        pre_parsed_text = doc_row.get("text")
+        if isinstance(pre_parsed_text, str):
+            try:
+                parses = json.loads(pre_parsed_text)
+            except Exception:
+                parses = []
+        elif isinstance(pre_parsed_text, (list, tuple)):
+            parses = list(pre_parsed_text)
+        else:
+            parses = []
+            
+        all_pages = set()
+        if not isinstance(parses, list):
+            if parses:
+                parses = [parses]
+            else:
+                parses = []
+                
+        for parse_obj in parses:
+            # We don't filter by parser in agents.py, just aggregate all known pages across parsers
+            parsed_pages = parse_obj.get("pages") or []
+            for pg in parsed_pages:
+                if isinstance(pg, dict) and pg.get("page") is not None:
+                    all_pages.add(int(pg.get("page")))
+        
+        if all_pages:
+            pages = sorted(list(all_pages))
+        else:
+            pages = [1]
 
     doc_row = docs_dict.get(document_id)
     if not doc_row:
