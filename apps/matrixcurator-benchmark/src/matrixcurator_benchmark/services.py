@@ -121,7 +121,8 @@ async def run_dataset_benchmark(
                         document_id=doc_id,
                         error=str(e),
                     )
-                    trace.update(level="ERROR", status_message=str(e))
+                    error_msg = f"Error: {str(e)}"
+                    trace.update(level="ERROR", status_message=str(e), output=error_msg)
                     await asyncio.to_thread(
                         lanfuse_client.api.dataset_run_items.create,
                         run_name=run_name,
@@ -135,7 +136,8 @@ async def run_dataset_benchmark(
                         item_id=item_id,
                         document_id=doc_id,
                     )
-                    trace.update(level="ERROR", status_message=str(e))
+                    error_msg = f"Error: {str(e)}"
+                    trace.update(level="ERROR", status_message=str(e), output=error_msg)
                     await asyncio.to_thread(
                         lanfuse_client.api.dataset_run_items.create,
                         run_name=run_name,
