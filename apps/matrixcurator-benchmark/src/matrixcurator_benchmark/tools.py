@@ -29,8 +29,8 @@ def docs_dict(fixture_parsed_cache: List[Dict[str, Any]]) -> dict[str, Any]:
     result = {}
     for row in fixture_parsed_cache:
         key = row.get("id") or row.get("document_id")
-        if key:
-            result[key] = row
+        if key is not None:
+            result[str(key)] = row
     return result
 
 

@@ -2,7 +2,7 @@ import pytest
 import json
 from unittest.mock import MagicMock
 
-from matrixcurator_benchmark.benchmark_tools import (
+from matrixcurator_benchmark.tools import (
     skip_non_pdf,
     skip_non_docx,
     skip_non_txt,
