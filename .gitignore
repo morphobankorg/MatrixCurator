@@ -194,10 +194,21 @@ backend/data/app.db
 *.db
 *secrets.toml*
 
-# Architect
+# Agents
 plans/
+
+# Aider
+.aider.*
 
 # Rune
 .rune/*
 !.rune/config
 !.rune/index
+.agents/skills/langfuse/modules/langfuse-docs
+.agents/skills/langfuse/modules/langfuse-python
+.agents/skills/langfuse/modules/langfuse
+.agents/skills/worldline-python/modules/worldline-python
+.agents/skills/litellm/modules/litellm-docs
+.agents/skills/docling/modules/docling
+.agents/skills/dspy/modules/dspy
+.agents/skills/langchain/modules/docs
