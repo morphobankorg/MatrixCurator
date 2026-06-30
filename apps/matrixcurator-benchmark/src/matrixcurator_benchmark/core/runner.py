@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Dict
 
+from tenacity import retry, stop_after_attempt, wait_fixed
 from lume.integrations.langfuse import langfuse  # type: ignore
 from langfuse import observe
 
@@ -61,6 +62,14 @@ def discover_benchmarks(path: str, filters: list[str] = None) -> None:
                 logger.exception("Failed to import %s: %s", module_path, e)
 
     sys.path.pop(0)
+
+
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
+def fetch_dataset_with_retry(client: Any, name: str) -> Any:
+    dataset = client.get_dataset(name)
+    if not getattr(dataset, "items", []):
+        raise ValueError(f"Dataset {name} is empty or not yet synchronized.")
+    return dataset
 
 
 async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = False) -> None:
