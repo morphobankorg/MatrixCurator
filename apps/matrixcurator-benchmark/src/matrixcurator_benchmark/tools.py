@@ -116,7 +116,7 @@ async def _execute_tool_benchmark(
         raise
     except Exception as e:
         logger.warning(
-            "Failed to load pre-parsed text for document %s: %s", document_id, e
+            "Failed to load pre-parsed text", document_id=document_id, error=str(e)
         )
         raise FailBenchmark(f"{tool_name} parsing failed: {str(e)}")
 
