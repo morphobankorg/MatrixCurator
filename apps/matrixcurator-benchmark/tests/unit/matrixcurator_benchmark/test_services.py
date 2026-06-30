@@ -134,7 +134,7 @@ async def test_run_dataset_benchmark_fail(mock_langfuse_class):
     mock_trace.update.assert_called_with(level="ERROR", status_message="fail")
     
     # Link SHOULD be called
-    assert item1.link.call_count == 1
+    assert mock_lf.api.dataset_run_items.create.call_count == 1
 
 
 @pytest.mark.asyncio
