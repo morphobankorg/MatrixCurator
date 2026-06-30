@@ -106,7 +106,11 @@ async def run_dataset_benchmark(
                     await process_fn(item, trace)
                     
                     await asyncio.to_thread(
-                        item.link, trace, run_name
+                        lanfuse_client.api.dataset_run_items.create,
+                        run_name=run_name,
+                        dataset_item_id=item.id,
+                        trace_id=trace.trace_id,
+                        observation_id=trace.id,
                     )
                 except SkipBenchmark:
                     pass
@@ -119,7 +123,11 @@ async def run_dataset_benchmark(
                     )
                     trace.update(level="ERROR", status_message=str(e))
                     await asyncio.to_thread(
-                        item.link, trace, run_name
+                        lanfuse_client.api.dataset_run_items.create,
+                        run_name=run_name,
+                        dataset_item_id=item.id,
+                        trace_id=trace.trace_id,
+                        observation_id=trace.id,
                     )
                 except Exception as e:
                     logger.exception(
@@ -129,7 +137,11 @@ async def run_dataset_benchmark(
                     )
                     trace.update(level="ERROR", status_message=str(e))
                     await asyncio.to_thread(
-                        item.link, trace, run_name
+                        lanfuse_client.api.dataset_run_items.create,
+                        run_name=run_name,
+                        dataset_item_id=item.id,
+                        trace_id=trace.trace_id,
+                        observation_id=trace.id,
                     )
 
     await asyncio.gather(*[_run(item, index) for index, item in enumerate(filtered_items)])
