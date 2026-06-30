@@ -18,16 +18,14 @@ def test_discover_benchmarks(tmp_path):
         mock_import.assert_called_once_with("benchmarks.benchmark_dummy")
 
 @pytest.mark.asyncio
-@patch("matrixcurator_benchmark.core.runner.langfuse")
+@patch("matrixcurator_benchmark.core.runner.get_langfuse_client")
+@patch("matrixcurator_benchmark.core.runner.flush_langfuse_client")
 @patch("matrixcurator_benchmark.core.runner.get_benchmarks")
-async def test_run_all(mock_get_benchmarks, mock_langfuse):
+async def test_run_all(mock_get_benchmarks, mock_flush, mock_get_client):
     mock_lf = create_autospec(langfuse.Langfuse, instance=True)
     mock_api = create_autospec(langfuse.api.client.LangfuseAPI, instance=True)
     mock_lf.api = mock_api
-    if hasattr(mock_langfuse, "Langfuse"):
-        mock_langfuse.Langfuse.return_value = mock_lf
-    else:
-        mock_langfuse = mock_lf
+    mock_get_client.return_value = mock_lf
         
     mock_dataset = MagicMock()
     mock_item = MagicMock()
@@ -58,16 +56,14 @@ async def test_run_all(mock_get_benchmarks, mock_langfuse):
     assert mock_resolve.call_count >= 2
 
 @pytest.mark.asyncio
-@patch("matrixcurator_benchmark.core.runner.langfuse")
+@patch("matrixcurator_benchmark.core.runner.get_langfuse_client")
+@patch("matrixcurator_benchmark.core.runner.flush_langfuse_client")
 @patch("matrixcurator_benchmark.core.runner.get_benchmarks")
-async def test_run_all_skip_fail_handled(mock_get_benchmarks, mock_langfuse):
+async def test_run_all_skip_fail_handled(mock_get_benchmarks, mock_flush, mock_get_client):
     mock_lf = create_autospec(langfuse.Langfuse, instance=True)
     mock_api = create_autospec(langfuse.api.client.LangfuseAPI, instance=True)
     mock_lf.api = mock_api
-    if hasattr(mock_langfuse, "Langfuse"):
-        mock_langfuse.Langfuse.return_value = mock_lf
-    else:
-        mock_langfuse = mock_lf
+    mock_get_client.return_value = mock_lf
         
     mock_dataset = MagicMock()
     mock_item = MagicMock()
@@ -89,16 +85,14 @@ async def test_run_all_skip_fail_handled(mock_get_benchmarks, mock_langfuse):
         await run_all(workers=1, limit=1, skip_sync=True)
 
 @pytest.mark.asyncio
-@patch("matrixcurator_benchmark.core.runner.langfuse")
+@patch("matrixcurator_benchmark.core.runner.get_langfuse_client")
+@patch("matrixcurator_benchmark.core.runner.flush_langfuse_client")
 @patch("matrixcurator_benchmark.core.runner.get_benchmarks")
-async def test_run_all_skip_if(mock_get_benchmarks, mock_langfuse):
+async def test_run_all_skip_if(mock_get_benchmarks, mock_flush, mock_get_client):
     mock_lf = create_autospec(langfuse.Langfuse, instance=True)
     mock_api = create_autospec(langfuse.api.client.LangfuseAPI, instance=True)
     mock_lf.api = mock_api
-    if hasattr(mock_langfuse, "Langfuse"):
-        mock_langfuse.Langfuse.return_value = mock_lf
-    else:
-        mock_langfuse = mock_lf
+    mock_get_client.return_value = mock_lf
         
     mock_dataset = MagicMock()
     mock_item = MagicMock()
@@ -135,18 +129,16 @@ async def test_run_all_skip_if(mock_get_benchmarks, mock_langfuse):
     mock_lf.set_current_trace_io.assert_not_called()
 
 @pytest.mark.asyncio
-@patch("matrixcurator_benchmark.core.runner.langfuse")
+@patch("matrixcurator_benchmark.core.runner.get_langfuse_client")
+@patch("matrixcurator_benchmark.core.runner.flush_langfuse_client")
 @patch("matrixcurator_benchmark.core.runner.get_benchmarks")
-async def test_run_all_fail_benchmark_logged(mock_get_benchmarks, mock_langfuse, caplog):
+async def test_run_all_fail_benchmark_logged(mock_get_benchmarks, mock_flush, mock_get_client, caplog):
     import logging
     caplog.set_level(logging.WARNING)
     mock_lf = create_autospec(langfuse.Langfuse, instance=True)
     mock_api = create_autospec(langfuse.api.client.LangfuseAPI, instance=True)
     mock_lf.api = mock_api
-    if hasattr(mock_langfuse, "Langfuse"):
-        mock_langfuse.Langfuse.return_value = mock_lf
-    else:
-        mock_langfuse = mock_lf
+    mock_get_client.return_value = mock_lf
         
     mock_dataset = MagicMock()
     mock_item = MagicMock()
@@ -174,14 +166,12 @@ async def test_run_all_fail_benchmark_logged(mock_get_benchmarks, mock_langfuse,
     assert any("Failed benchmark failing_bench: Fail me" in record.message for record in caplog.records)
 
 @pytest.mark.asyncio
-@patch("matrixcurator_benchmark.core.runner.langfuse")
+@patch("matrixcurator_benchmark.core.runner.get_langfuse_client")
+@patch("matrixcurator_benchmark.core.runner.flush_langfuse_client")
 @patch("matrixcurator_benchmark.core.runner.get_benchmarks")
-async def test_run_all_limit_grouping(mock_get_benchmarks, mock_langfuse):
+async def test_run_all_limit_grouping(mock_get_benchmarks, mock_flush, mock_get_client):
     mock_lf = create_autospec(langfuse.Langfuse, instance=True)
-    if hasattr(mock_langfuse, "Langfuse"):
-        mock_langfuse.Langfuse.return_value = mock_lf
-    else:
-        mock_langfuse = mock_lf
+    mock_get_client.return_value = mock_lf
         
     mock_dataset = MagicMock()
     
@@ -218,16 +208,14 @@ async def test_run_all_limit_grouping(mock_get_benchmarks, mock_langfuse):
 
 
 @pytest.mark.asyncio
-@patch("matrixcurator_benchmark.core.runner.langfuse")
+@patch("matrixcurator_benchmark.core.runner.get_langfuse_client")
+@patch("matrixcurator_benchmark.core.runner.flush_langfuse_client")
 @patch("matrixcurator_benchmark.core.runner.get_benchmarks")
-async def test_run_all_dataset_run_item_creation(mock_get_benchmarks, mock_langfuse):
+async def test_run_all_dataset_run_item_creation(mock_get_benchmarks, mock_flush, mock_get_client):
     mock_lf = create_autospec(langfuse.Langfuse, instance=True)
     mock_api = create_autospec(langfuse.api.client.LangfuseAPI, instance=True)
     mock_lf.api = mock_api
-    if hasattr(mock_langfuse, "Langfuse"):
-        mock_langfuse.Langfuse.return_value = mock_lf
-    else:
-        mock_langfuse = mock_lf
+    mock_get_client.return_value = mock_lf
         
     mock_dataset = MagicMock()
     mock_item = MagicMock()

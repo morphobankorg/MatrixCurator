@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict
 
 from tenacity import retry, stop_after_attempt, wait_fixed
-from lume.integrations.langfuse import langfuse  # type: ignore
+from matrixcurator.integrations.langfuse import get_langfuse_client, flush_langfuse_client
 from langfuse import observe
 
 from matrixcurator_benchmark.core.exceptions import FailBenchmark, SkipBenchmark
@@ -77,7 +77,7 @@ async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = Fa
     Execute all discovered benchmarks with the specified concurrency limit.
     """
     # Initialize Langfuse client
-    lf_client = langfuse.Langfuse() if hasattr(langfuse, "Langfuse") else langfuse
+    lf_client = get_langfuse_client()
 
     # Expose global configurations for granular fixtures to use
     _SESSION_CACHE["skip_sync"] = skip_sync
@@ -173,7 +173,7 @@ async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = Fa
                     except Exception:
                         trace_id = None
                         
-                    if trace_id:
+                    if trace_id and lf_client:
                         try:
                             lf_client.api.dataset_run_items.create(
                                 run_name=trace_name,
@@ -182,6 +182,8 @@ async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = Fa
                             )
                         except Exception as link_e:
                             logger.error("Failed to link trace run item: %s", link_e)
+                    else:
+                        logger.warning("No trace_id found in context for run item link!")
 
                 return captured_output["value"]
 
@@ -234,4 +236,4 @@ async def run_all(workers: int, limit: int, skip_sync: bool, no_cache: bool = Fa
         await asyncio.gather(*tasks)
 
     # Ensure all traces flush
-    lf_client.flush()
+    flush_langfuse_client()

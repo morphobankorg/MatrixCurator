@@ -35,10 +35,9 @@ async def test_preparse_documents_realtime_saving(mock_exists, mock_makedirs):
             # Call preparse_documents
             result = await preparse_documents(mock_repo, "dummy_path", force=True, limit=None)
 
-            # Assert that to_parquet was called for each document updated
-            # Plus once at the beginning to initialize the cache.
-            # So it should be called exactly 3 times (1 init + 2 per document).
-            assert mock_repo.write_documents.call_count == 3
+            # Assert that to_parquet was called for each document updated.
+            # (No cache init happens because no_cache=False by default)
+            assert mock_repo.write_documents.call_count == 2
             
             # Verify the records were updated
             assert result[0]["text"] == [{"parser": "txt", "pages": [{"page": 1, "content": "parsed text"}]}]
