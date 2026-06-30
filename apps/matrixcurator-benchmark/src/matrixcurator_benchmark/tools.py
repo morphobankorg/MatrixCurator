@@ -18,8 +18,24 @@ async def _execute_tool_benchmark(
     expected_mime: str,
 ) -> None:
     input_data = item.input
-    document_id = input_data.get("document_id")
     
+    document_id = None
+    pages = None
+    if isinstance(input_data, dict):
+        document_id = input_data.get("document_id")
+        pages = input_data.get("pages")
+    elif hasattr(input_data, "document_id"):
+        document_id = getattr(input_data, "document_id", None)
+        pages = getattr(input_data, "pages", None)
+    elif isinstance(input_data, str):
+        try:
+            parsed = json.loads(input_data)
+            if isinstance(parsed, dict):
+                document_id = parsed.get("document_id")
+                pages = parsed.get("pages")
+        except Exception:
+            pass
+
     doc_row = docs_dict.get(document_id)
     if not doc_row:
         raise SkipBenchmark(f"Document {document_id} not found in parquet data.")
@@ -27,7 +43,6 @@ async def _execute_tool_benchmark(
     if doc_row.get("mime_type", "") != expected_mime:
         raise SkipBenchmark(f"Skipping {document_id} because mime_type != {expected_mime}")
         
-    pages = input_data.get("pages")
     if pages is None:
         pages = [1]
     elif hasattr(pages, "__len__") and len(pages) == 0:

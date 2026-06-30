@@ -36,16 +36,20 @@ async def run_main():
 
     args = parser.parse_args()
     
+    targets = args.args if args.args else ["tools", "retrieval"]
+
     logger.info(
-        "Starting benchmark execution (workers=%d, limit=%d, skip_sync=%s, no_cache=%s)",
-        args.workers, args.limit, args.skip_sync, args.no_cache
+        "Starting benchmark execution...",
+        workers=args.workers,
+        limit=args.limit,
+        skip_sync=args.skip_sync,
+        no_cache=args.no_cache,
+        targets=targets
     )
     
     docs_dict = await bootstrap_environment(
-        limit=args.limit, skip_sync=args.skip_sync, no_cache=args.no_cache
+        limit=args.limit, skip_sync=args.skip_sync, no_cache=args.no_cache, targets=targets
     )
-
-    targets = args.args if args.args else ["tools", "retrieval"]
 
     if "tools" in targets:
         await run_tools_benchmarks(limit=args.limit, workers=args.workers, docs_dict=docs_dict)

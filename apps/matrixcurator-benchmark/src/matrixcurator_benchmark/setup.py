@@ -17,7 +17,7 @@ from matrixcurator_benchmark.modules.retrieval import services as retrieval_serv
 logger = structlog.get_logger(__name__)
 
 async def bootstrap_environment(
-    limit: int, skip_sync: bool, no_cache: bool
+    limit: int, skip_sync: bool, no_cache: bool, targets: list[str] = None
 ) -> Dict[str, Any]:
     """Prepares and caches datasets before benchmarking.
     
@@ -25,11 +25,18 @@ async def bootstrap_environment(
         limit (int): The maximum number of documents to parse/sync.
         skip_sync (bool): If True, skip syncing datasets and evaluators to Langfuse.
         no_cache (bool): If True, force reparsing of documents.
+        targets (list[str]): The benchmark suites being targeted.
         
     Returns:
         Dict[str, Any]: A mapping of document_id -> row dictionary.
     """
-    logger.info("Bootstrapping environment...")
+    logger.info(
+        "Bootstrapping environment...",
+        targets=targets,
+        limit=limit,
+        skip_sync=skip_sync,
+        no_cache=no_cache,
+    )
     
     file_path = "apps/matrixcurator-benchmark/src/matrixcurator_benchmark/data/documents.parquet"
     parsed_docs = await dataset_services.preparse_documents(
@@ -45,7 +52,7 @@ async def bootstrap_environment(
     }
     
     if not skip_sync:
-        logger.info("Syncing datasets and evaluators to Langfuse...")
+        logger.info("Syncing datasets to Langfuse...")
         lanfuse_client = langfuse.Langfuse()
         
         await dataset_services.sync_datasets(
@@ -55,14 +62,21 @@ async def bootstrap_environment(
             docs=parsed_docs
         )
         
-        evaluation_services.setup_evaluators(
-            langfuse_repository=evaluation_langfuse_repository,
-            client=lanfuse_client
-        )
+        if targets and ("agents" in targets or "evaluation" in targets):
+            logger.info("Setting up evaluators...")
+            evaluation_services.setup_evaluators(
+                langfuse_repository=evaluation_langfuse_repository,
+                client=lanfuse_client
+            )
+        else:
+            logger.info("Skipping evaluators setup based on targets.")
     
-    logger.info("Auto ingesting vectors...")
-    df_docs = pd.DataFrame(parsed_docs)
-    retrieval_services.auto_ingest_vectors(df_docs)
+    if targets and ("retrieval" in targets or "agents" in targets):
+        logger.info("Auto ingesting vectors...")
+        df_docs = pd.DataFrame(parsed_docs)
+        retrieval_services.auto_ingest_vectors(df_docs)
+    else:
+        logger.info("Skipping vector ingestion based on targets.")
     
     logger.info("Environment bootstrapped successfully.")
     return docs_dict
