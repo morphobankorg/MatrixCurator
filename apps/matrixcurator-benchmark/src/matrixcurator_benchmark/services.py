@@ -93,22 +93,24 @@ async def run_dataset_benchmark(
 
             item_id = getattr(item, "id", "unknown")
             logger.info("Processing benchmark item", item_index=index + 1, total_items=len(filtered_items), document_id=doc_id, item_id=item_id)
+            
             context_manager = lanfuse_client.start_as_current_observation(
-                name=run_name, as_type="span"
+                name=run_name, as_type="span", input=item.input
             )
+            
             if not context_manager:
                 return
 
             with context_manager as trace:
                 try:
                     await process_fn(item, trace)
-                    # Manually link the dataset run in a thread
+                    
                     await asyncio.to_thread(
                         lanfuse_client.api.dataset_run_items.create,
                         run_name=run_name,
-                        dataset_item_id=getattr(item, "id", None),
-                        observation_id=trace.id,
+                        dataset_item_id=item.id,
                         trace_id=trace.trace_id,
+                        observation_id=trace.id,
                     )
                 except SkipBenchmark:
                     pass
@@ -123,9 +125,9 @@ async def run_dataset_benchmark(
                     await asyncio.to_thread(
                         lanfuse_client.api.dataset_run_items.create,
                         run_name=run_name,
-                        dataset_item_id=getattr(item, "id", None),
-                        observation_id=trace.id,
+                        dataset_item_id=item.id,
                         trace_id=trace.trace_id,
+                        observation_id=trace.id,
                     )
                 except Exception as e:
                     logger.exception(
@@ -137,9 +139,9 @@ async def run_dataset_benchmark(
                     await asyncio.to_thread(
                         lanfuse_client.api.dataset_run_items.create,
                         run_name=run_name,
-                        dataset_item_id=getattr(item, "id", None),
-                        observation_id=trace.id,
+                        dataset_item_id=item.id,
                         trace_id=trace.trace_id,
+                        observation_id=trace.id,
                     )
 
     await asyncio.gather(*[_run(item, index) for index, item in enumerate(filtered_items)])

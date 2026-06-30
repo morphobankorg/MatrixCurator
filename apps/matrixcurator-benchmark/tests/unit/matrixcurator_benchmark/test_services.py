@@ -53,15 +53,23 @@ async def test_run_dataset_benchmark_limit(mock_langfuse_class):
     mock_lf.get_dataset.return_value = mock_dataset
     
     item1 = MagicMock()
+    item1.id = "item1_id"
     item1.input = {"document_id": "doc1"}
     
     item2 = MagicMock()
+    item2.id = "item2_id"
     item2.input = {"document_id": "doc1"} # Same doc id
     
     item3 = MagicMock()
+    item3.id = "item3_id"
     item3.input = {"document_id": "doc2"}
     
     mock_dataset.items = [item1, item2, item3]
+    
+    mock_trace = MagicMock()
+    mock_trace.id = "trace_id_123"
+    mock_trace.trace_id = "trace_id_123_456"
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     mock_process_fn = AsyncMock()
     
@@ -81,10 +89,13 @@ async def test_run_dataset_benchmark_skip(mock_langfuse_class):
     mock_lf.get_dataset.return_value = mock_dataset
     
     item1 = MagicMock()
+    item1.id = "item1_id"
     item1.input = {"document_id": "doc1"}
     mock_dataset.items = [item1]
     
     mock_trace = MagicMock()
+    mock_trace.id = "trace_id_123"
+    mock_trace.trace_id = "trace_id_123_456"
     mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     async def mock_process_fn(item, trace):
@@ -105,10 +116,13 @@ async def test_run_dataset_benchmark_fail(mock_langfuse_class):
     mock_lf.get_dataset.return_value = mock_dataset
     
     item1 = MagicMock()
+    item1.id = "item1_id"
     item1.input = {"document_id": "doc1"}
     mock_dataset.items = [item1]
     
     mock_trace = MagicMock()
+    mock_trace.id = "trace_id_123"
+    mock_trace.trace_id = "trace_id_123_456"
     mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     async def mock_process_fn(item, trace):
@@ -133,19 +147,27 @@ async def test_run_dataset_benchmark_resilient_input_parsing(mock_langfuse_class
     
     # 1. Dict input
     item1 = MagicMock()
+    item1.id = "item1_id"
     item1.input = {"document_id": "doc1"}
     
     # 2. Object input
     class ObjInput:
         document_id = "doc2"
     item2 = MagicMock()
+    item2.id = "item2_id"
     item2.input = ObjInput()
     
     # 3. JSON string input
     item3 = MagicMock()
+    item3.id = "item3_id"
     item3.input = '{"document_id": "doc3"}'
     
     mock_dataset.items = [item1, item2, item3]
+    
+    mock_trace = MagicMock()
+    mock_trace.id = "trace_id_123"
+    mock_trace.trace_id = "trace_id_123_456"
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
     
     mock_process_fn = AsyncMock()
     
