@@ -62,7 +62,7 @@ async def bootstrap_environment(
             docs=parsed_docs
         )
         
-        if targets and ("agents" in targets or "evaluation" in targets):
+        if targets and ("agents" in targets or "evaluation" in targets or "tools" in targets):
             logger.info("Setting up evaluators...")
             evaluation_services.setup_evaluators(
                 langfuse_repository=evaluation_langfuse_repository,
