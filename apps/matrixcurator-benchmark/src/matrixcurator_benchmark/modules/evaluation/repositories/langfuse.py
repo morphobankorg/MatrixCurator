@@ -3,6 +3,7 @@ from typing import Any
 
 from langfuse import Langfuse
 from langfuse.api.commons import ConfigCategory, ScoreConfigDataType
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from langfuse.api.unstable.commons import (
     EvaluationRuleMapping,
     EvaluationRuleMappingSource,
@@ -25,6 +26,11 @@ from lume import structlog
 logger = structlog.get_logger(__name__)
 
 
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True,
+)
 def create_score_config(
     client: Langfuse, name: str, categories: list[dict[str, Any]], description: str
 ) -> str:
@@ -56,6 +62,11 @@ def create_score_config(
     return score_config_id
 
 
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True,
+)
 def create_evaluator(
     client: Langfuse,
     evaluator_name: str,
@@ -92,6 +103,11 @@ def create_evaluator(
     return evaluator.id
 
 
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True,
+)
 def bind_evaluation_rule(
     client: Langfuse, rule_name: str, evaluator_name: str, dataset_id: str
 ) -> None:

@@ -53,7 +53,16 @@ def setup_evaluators(langfuse_repo: Any, client: Langfuse) -> None:
             categories=cat_labels,
         )
 
-        dataset = client.get_dataset("character_states")
+        import tenacity
+        @tenacity.retry(
+            stop=tenacity.stop_after_attempt(5),
+            wait=tenacity.wait_exponential(multiplier=1, min=2, max=10),
+            reraise=True,
+        )
+        def _get_dataset():
+            return client.get_dataset("character_states")
+        
+        dataset = _get_dataset()
 
         langfuse_repo.bind_evaluation_rule(
             client,
