@@ -130,13 +130,75 @@ async def test_run_dataset_benchmark_fail(mock_langfuse_class):
     
     await run_dataset_benchmark("test_dataset", "test_run", mock_process_fn, limit=0, workers=2)
     
-    # Trace should be updated with error
-    mock_trace.update.assert_called_with(level="ERROR", status_message="fail")
+    # Trace should be updated with error AND output string for evaluators
+    mock_trace.update.assert_called_with(level="ERROR", status_message="fail", output="Error: fail")
     
     # Link SHOULD be called
     assert mock_lf.api.dataset_run_items.create.call_count == 1
 
 
+
+@pytest.mark.asyncio
+@patch("matrixcurator_benchmark.services.langfuse.Langfuse")
+async def test_run_dataset_benchmark_unexpected_fail(mock_langfuse_class):
+    mock_lf = MagicMock()
+    mock_langfuse_class.return_value = mock_lf
+    mock_dataset = MagicMock()
+    mock_lf.get_dataset.return_value = mock_dataset
+    
+    item1 = MagicMock()
+    item1.id = "item1_id"
+    item1.input = {"document_id": "doc1"}
+    mock_dataset.items = [item1]
+    
+    mock_trace = MagicMock()
+    mock_trace.id = "trace_id_123"
+    mock_trace.trace_id = "trace_id_123_456"
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
+    
+    async def mock_process_fn(item, trace):
+        raise ValueError("unexpected")
+    
+    await run_dataset_benchmark("test_dataset", "test_run", mock_process_fn, limit=0, workers=2)
+    
+    # Trace should be updated with error AND output string for evaluators
+    mock_trace.update.assert_called_with(level="ERROR", status_message="unexpected", output="Error: unexpected")
+    
+    # Link SHOULD be called
+    assert mock_lf.api.dataset_run_items.create.call_count == 1
+    mock_lf = MagicMock()
+    mock_langfuse_class.return_value = mock_lf
+    mock_dataset = MagicMock()
+    mock_lf.get_dataset.return_value = mock_dataset
+    
+    # 1. Dict input
+    item1 = MagicMock()
+    item1.id = "item1_id"
+    item1.input = {"document_id": "doc1"}
+    
+    # 2. Object input
+    class ObjInput:
+        document_id = "doc2"
+    item2 = MagicMock()
+    item2.id = "item2_id"
+    item2.input = ObjInput()
+    
+    # 3. JSON string input
+    item3 = MagicMock()
+    item3.id = "item3_id"
+    item3.input = '{"document_id": "doc3"}'
+    
+    mock_dataset.items = [item1, item2, item3]
+    
+    mock_trace = MagicMock()
+    mock_trace.id = "trace_id_123"
+    mock_trace.trace_id = "trace_id_123_456"
+    mock_lf.start_as_current_observation.return_value.__enter__.return_value = mock_trace
+    
+    mock_process_fn = AsyncMock()
+    
+    await run_dataset_benchmark("test_dataset", "test_run", mock_process_fn, limit=3, workers=1)
+    
 @pytest.mark.asyncio
 @patch("matrixcurator_benchmark.services.langfuse.Langfuse")
 async def test_run_dataset_benchmark_resilient_input_parsing(mock_langfuse_class):

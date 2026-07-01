@@ -113,6 +113,9 @@ def bind_evaluation_rule(
 ) -> None:
     """Binds an evaluation rule to a specific dataset."""
     try:
+        dataset = client.get_dataset(dataset_name)
+        dataset_id = dataset.id
+        
         existing_rules = client.api.unstable.evaluation_rules.list().data
         existing_rule_names = [rule.name for rule in existing_rules]
 
@@ -130,9 +133,9 @@ def bind_evaluation_rule(
                     filter=[
                         {
                             "type": "stringOptions",
-                            "column": "datasetName",
+                            "column": "datasetId",
                             "operator": "any of",
-                            "value": [dataset_name],
+                            "value": [dataset_id],
                         }
                     ],
                     mapping=[
