@@ -1,6 +1,6 @@
 import uuid
 import asyncio
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from litellm import aembedding
 from litellm.exceptions import RateLimitError, APIConnectionError, APIError
@@ -60,6 +60,8 @@ def chunk_text(
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
     parser_name: Optional[str] = None,
+    page: Optional[int] = None,
+    page_content: Optional[str] = None,
 ) -> List[DocumentChunk]:
     """
     Splits text into chunks using Langchain's RecursiveCharacterTextSplitter.
@@ -78,6 +80,10 @@ def chunk_text(
         meta = {"chunk_index": i, "total_chunks": len(texts)}
         if parser_name:
             meta["parser_name"] = parser_name
+        if page is not None:
+            meta["page"] = page
+        if page_content is not None:
+            meta["page_content"] = page_content
 
         chunks.append(
             {
@@ -125,6 +131,7 @@ async def retrieve_context(
     match_count: int = 5,
     document_id: Optional[str] = None,
     parser_name: Optional[str] = None,
+    full_page_retrieval: bool = False,
 ) -> str:
     """
     Embeds the query, searches the active backend, and returns concatenated context.
@@ -151,6 +158,86 @@ async def retrieve_context(
     if not similar_chunks:
         return ""
 
-    # Concatenate the contents of the retrieved chunks
-    context = "\n\n".join([chunk["content"] for chunk in similar_chunks])
+    if full_page_retrieval:
+        # Deduplicate by page number and return full page content
+        pages = {}
+        for chunk in similar_chunks:
+            meta = chunk.get("metadata", {})
+            page = meta.get("page")
+            content = meta.get("page_content")
+
+            # If parent page info is missing, fallback to chunk content
+            if page is None or content is None:
+                pages[chunk["id"]] = chunk["content"]
+            else:
+                pages[page] = content
+
+        # Sort by keys (if possible) to ensure consistent order
+        sorted_keys = sorted(list(pages.keys()), key=lambda x: (isinstance(x, str), x))
+        context = "\n\n".join([pages[k] for k in sorted_keys])
+    else:
+        # Concatenate the contents of the retrieved chunks
+        context = "\n\n".join([chunk["content"] for chunk in similar_chunks])
+
     return context
+
+
+async def vectorize_document(
+    document_id: str, text: List[Dict[str, Any]], pages: Optional[List[int]] = None
+) -> None:
+    """
+    Parses a document's texts and ingests them into the vector store.
+    Supports targeted page-level subsetting and adds Parent Page metadata for semantic recall.
+    """
+    for parse_data in text:
+        parser = parse_data.get("parser")
+        pages_data = parse_data.get("pages", [])
+        if not isinstance(pages_data, list):
+            continue
+
+        all_chunks = []
+        for page_obj in pages_data:
+            if not isinstance(page_obj, dict):
+                continue
+
+            page_num = page_obj.get("page")
+            content = page_obj.get("content")
+
+            if not content:
+                continue
+
+            page_chunks = chunk_text(
+                content,
+                document_id,
+                parser_name=parser,
+                page=page_num,
+                page_content=content,
+            )
+            all_chunks.extend(page_chunks)
+
+        await embed_and_store_chunks(all_chunks)
+
+        if parser == "docling" and pages and isinstance(pages, list):
+            relevant_chunks = []
+            for page_obj in pages_data:
+                if not isinstance(page_obj, dict):
+                    continue
+
+                page_num = page_obj.get("page")
+                if page_num not in pages:
+                    continue
+
+                content = page_obj.get("content")
+                if not content:
+                    continue
+
+                page_chunks = chunk_text(
+                    content,
+                    document_id,
+                    parser_name="docling_relevant",
+                    page=page_num,
+                    page_content=content,
+                )
+                relevant_chunks.extend(page_chunks)
+
+            await embed_and_store_chunks(relevant_chunks)
