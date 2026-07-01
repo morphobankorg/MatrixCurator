@@ -3,37 +3,41 @@ import json
 from typing import Any, Dict
 from litellm import completion
 from langgraph.types import Command
-from langgraph.errors import NodeInterrupt
-from matrixcurator.modules.state import AgentState, ContextSchema
+from matrixcurator.modules.state import AgentState
 from matrixcurator.exceptions import ContextLengthExceededError
 from pydantic import BaseModel, Field
+
 
 class CharacterStateOutput(BaseModel):
     character_index: int = Field(description="The index of the character")
     character_name: str = Field(description="The name of the character")
-    states: Dict[str, str] = Field(description="A dictionary mapping state numbers (as strings) to state descriptions")
+    states: Dict[str, str] = Field(
+        description="A dictionary mapping state numbers (as strings) to state descriptions"
+    )
+
 
 def llm_error_handler(state: AgentState, error: Exception) -> Command:
     """Fallback error handler for LLM nodes."""
     print(f"Error in LLM node: {error}")
     return Command(
         update={
-            "current_model": "gemini/gemini-1.5-flash", # Fallback model
-            "errors": [f"LLM Error: {str(error)}"]
+            "current_model": "gemini/gemini-1.5-flash",  # Fallback model
+            "errors": [f"LLM Error: {str(error)}"],
         },
-        goto="extractor_agent"
+        goto="extractor_agent",
     )
+
 
 def extractor_agent(state: AgentState) -> Dict[str, Any]:
     """Extracts character data using LLM."""
     context = state.get("context", "")
     char_idx = state.get("character_index")
     model = state.get("current_model", "gemini/gemini-1.5-pro")
-    
+
     if not context:
         return {"extracted_data": None, "errors": ["Empty context provided."]}
-        
-    if len(context) > 1000000: # Arbitrary large limit for safety
+
+    if len(context) > 1000000:  # Arbitrary large limit for safety
         raise ContextLengthExceededError("Context too large for extraction.")
 
     prompt = f"""
