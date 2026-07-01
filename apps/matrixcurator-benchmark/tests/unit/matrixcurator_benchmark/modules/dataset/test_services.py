@@ -110,6 +110,50 @@ async def test_preparse_documents_null_pages_graceful(mock_exists, mock_makedirs
 
 
 @pytest.mark.asyncio
+@patch("matrixcurator_benchmark.modules.dataset.services.os.makedirs")
+@patch("matrixcurator_benchmark.modules.dataset.services.os.path.exists")
+async def test_preparse_documents_limit_preserves_dataset(mock_exists, mock_makedirs):
+    """
+    Test that preparse_documents uses limit to only process a subset,
+    but saves the full dataset back to avoid data loss.
+    """
+    mock_exists.return_value = True
+
+    # 3 dummy records
+    dummy_records = [
+        {"id": "doc1", "mime_type": "text/plain", "filename": "file1.txt", "file_bytes": b"test1", "text": None},
+        {"id": "doc2", "mime_type": "text/plain", "filename": "file2.txt", "file_bytes": b"test2", "text": None},
+        {"id": "doc3", "mime_type": "text/plain", "filename": "file3.txt", "file_bytes": b"test3", "text": None},
+    ]
+
+    mock_repository = MagicMock()
+    mock_repository.read_documents.return_value = dummy_records
+
+    mock_table = MagicMock()
+    mock_table.to_pylist.return_value = dummy_records
+
+    with patch("pyarrow.parquet.read_table", return_value=mock_table):
+        mock_tool = MagicMock()
+        mock_tool.ainvoke = AsyncMock(return_value="parsed text")
+        with patch("matrixcurator_benchmark.modules.dataset.services.parse_with_txt", mock_tool):
+            # Pass limit=1
+            result = await preparse_documents(mock_repository, "dummy_path", force=True, limit=1)
+
+            # Assert write_documents was called at least once
+            assert mock_repository.write_documents.call_count > 0
+
+            # The last call to write_documents should pass the full 3-item list
+            last_call_args = mock_repository.write_documents.call_args[0]
+            written_docs = last_call_args[0]
+            assert len(written_docs) == 3
+
+            # The function should return ONLY the limited subset (1 item)
+            assert len(result) == 1
+
+            # Only the first document should have been parsed
+            assert result[0]["text"] == [{"parser": "txt", "pages": [{"page": 1, "content": "parsed text"}]}]
+
+@pytest.mark.asyncio
 async def test_sync_datasets_filters_character_states_by_document():
     mock_parquet_repository = MagicMock()
     # Characters array has states for doc1 and doc2
