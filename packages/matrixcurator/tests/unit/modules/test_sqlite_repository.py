@@ -53,3 +53,35 @@ def test_insert_and_query_sqlite_vector(temp_sqlite_db):
     results_docling = query_similar_chunks(embedding=dummy_embedding, match_threshold=0.5, match_count=5, parser_name="docling")
     assert len(results_docling) == 1
     assert results_docling[0]["content"] == "This is docling content"
+
+def test_delete_chunks_by_document(temp_sqlite_db):
+    from matrixcurator.modules.retrieval.repositories.sqlite import insert_chunks, query_similar_chunks, delete_chunks_by_document
+    
+    dummy_embedding = [0.1] * 3072
+    chunks = [
+        {
+            "id": "chunk_1",
+            "document_id": "doc_1",
+            "content": "doc 1 chunk",
+            "metadata": {"parser_name": "docling"},
+            "embedding": dummy_embedding
+        },
+        {
+            "id": "chunk_2",
+            "document_id": "doc_2",
+            "content": "doc 2 chunk",
+            "metadata": {"parser_name": "docling"},
+            "embedding": dummy_embedding
+        }
+    ]
+    
+    insert_chunks(chunks)
+    
+    results_before = query_similar_chunks(embedding=dummy_embedding, match_threshold=0.5, match_count=5)
+    assert len(results_before) == 2
+    
+    delete_chunks_by_document(["doc_1"])
+    
+    results_after = query_similar_chunks(embedding=dummy_embedding, match_threshold=0.5, match_count=5)
+    assert len(results_after) == 1
+    assert results_after[0]["document_id"] == "doc_2"
