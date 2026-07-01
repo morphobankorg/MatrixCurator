@@ -6,6 +6,7 @@ import structlog
 from matrixcurator_benchmark.setup import bootstrap_environment
 from matrixcurator_benchmark.tools import run_tools_benchmarks
 from matrixcurator_benchmark.retrieval import run_retrieval_benchmarks
+from matrixcurator_benchmark.agents import run_agents_benchmarks
 
 logger = structlog.get_logger(__name__)
 
@@ -31,7 +32,7 @@ async def run_main():
         help="Number of concurrent workers (default: 4)",
     )
     parser.add_argument(
-        "args", nargs="*", help="Target suites to run (e.g. tools, retrieval)"
+        "args", nargs="*", help="Target suites to run (e.g. tools, retrieval, agents)"
     )
 
     args = parser.parse_args()
@@ -56,6 +57,9 @@ async def run_main():
         
     if "retrieval" in targets:
         await run_retrieval_benchmarks(limit=args.limit, workers=args.workers, docs_dict=docs_dict)
+        
+    if "agents" in targets:
+        await run_agents_benchmarks(limit=args.limit, workers=args.workers, docs_dict=docs_dict)
 
     lf = langfuse.Langfuse()
     lf.flush()
