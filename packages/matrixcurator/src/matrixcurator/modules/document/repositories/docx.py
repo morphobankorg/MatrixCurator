@@ -3,6 +3,7 @@ import docx
 import io
 from matrixcurator.exceptions import DocumentParseError
 
+
 def read_docx(file_content: bytes, **kwargs) -> str:
     try:
         doc = docx.Document(io.BytesIO(file_content))
@@ -12,4 +13,3 @@ def read_docx(file_content: bytes, **kwargs) -> str:
         return "\n".join(text)
     except Exception as e:
         raise DocumentParseError(f"Failed to parse DOCX: {str(e)}") from e
-
