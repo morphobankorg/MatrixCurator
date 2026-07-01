@@ -103,6 +103,40 @@ def insert_chunks(chunks: List[DocumentChunk]) -> None:
         session.commit()
 
 
+def delete_chunks_by_document(document_ids: List[str]) -> None:
+    if not document_ids:
+        return
+
+    engine = get_engine()
+    with Session(engine) as session:
+        for chunk_id in range(0, len(document_ids), 100):
+            batch = document_ids[chunk_id : chunk_id + 100]
+            
+            # Use tuple parameter expansion for the IN clause
+            bind_params = {f"doc_{i}": doc_id for i, doc_id in enumerate(batch)}
+            in_clause = ", ".join([f":{k}" for k in bind_params.keys()])
+            
+            # Delete vectors first
+            session.execute(
+                text(f"""
+                DELETE FROM document_chunks_vec 
+                WHERE id IN (
+                    SELECT id FROM document_chunks_meta 
+                    WHERE document_id IN ({in_clause})
+                )
+                """),
+                bind_params
+            )
+            
+            # Delete meta
+            session.execute(
+                text(f"DELETE FROM document_chunks_meta WHERE document_id IN ({in_clause})"),
+                bind_params
+            )
+            
+        session.commit()
+
+
 def query_similar_chunks(
     embedding: List[float],
     match_threshold: float = 0.7,
