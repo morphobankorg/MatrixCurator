@@ -11,18 +11,22 @@ logger = structlog.get_logger(__name__)
 async def run_dataset_benchmark(
     dataset_name: str,
     run_name: str,
-    process_fn: Callable[[Any, Any], Any],
+    task_fn: Callable[..., Any],
     limit: int,
     workers: int,
+    evaluators: list[Any] | None = None,
+    filter_fn: Callable[[Any], bool] | None = None,
 ) -> None:
-    """Executes a benchmark over a Langfuse dataset.
+    """Executes a benchmark over a Langfuse dataset using Langfuse Experiments API.
 
     Args:
         dataset_name (str): The name of the Langfuse dataset to run against.
-        run_name (str): The name for this benchmark run/trace.
-        process_fn (Callable): The async function to execute for each item. Must take (item, trace).
+        run_name (str): The name for this benchmark run/experiment.
+        task_fn (Callable): The function conforming to TaskFunction protocol to execute for each item.
         limit (int): Maximum number of unique documents to process.
         workers (int): Number of concurrent tasks.
+        evaluators (list, optional): Optional list of client-side evaluators.
+        filter_fn (Callable, optional): Optional function to pre-filter items.
     """
     logger.info("Starting benchmark run", run_name=run_name, dataset_name=dataset_name)
     lanfuse_client = langfuse.Langfuse()
@@ -40,10 +44,13 @@ async def run_dataset_benchmark(
         logger.warning("Dataset has 0 items!", dataset_name=dataset_name)
         return
 
-    # Filter dataset.items based on limit (applying limit uniquely by document_id).
+    # Filter dataset.items based on filter_fn and limit (applying limit uniquely by document_id).
     filtered_items = []
     seen_docs = set()
     for item in items:
+        if filter_fn and not filter_fn(item):
+            continue
+
         doc_id = None
         if isinstance(item.input, dict):
             doc_id = item.input.get("document_id")
@@ -73,78 +80,20 @@ async def run_dataset_benchmark(
         total_items=len(items),
     )
 
-    semaphore = asyncio.Semaphore(workers)
+    if not filtered_items:
+        logger.warning("No items left after filtering!", dataset_name=dataset_name)
+        return
 
-    async def _run(item: Any, index: int) -> None:
-        async with semaphore:
-            doc_id = None
-            if isinstance(item.input, dict):
-                doc_id = item.input.get("document_id")
-            elif hasattr(item.input, "document_id"):
-                doc_id = getattr(item.input, "document_id")
-            elif isinstance(item.input, str):
-                import json
-                try:
-                    parsed = json.loads(item.input)
-                    if isinstance(parsed, dict):
-                        doc_id = parsed.get("document_id")
-                except Exception:
-                    pass
-
-            item_id = getattr(item, "id", "unknown")
-            logger.info("Processing benchmark item", item_index=index + 1, total_items=len(filtered_items), document_id=doc_id, item_id=item_id)
-            
-            context_manager = lanfuse_client.start_as_current_observation(
-                name=run_name, as_type="span", input=item.input
-            )
-            
-            if not context_manager:
-                return
-
-            with context_manager as trace:
-                try:
-                    await process_fn(item, trace)
-                    
-                    await asyncio.to_thread(
-                        lanfuse_client.api.dataset_run_items.create,
-                        run_name=run_name,
-                        dataset_item_id=item.id,
-                        trace_id=trace.trace_id,
-                        observation_id=trace.id,
-                    )
-                except SkipBenchmark:
-                    pass
-                except FailBenchmark as e:
-                    logger.error(
-                        "Benchmark failed for item",
-                        item_id=item_id,
-                        document_id=doc_id,
-                        error=str(e),
-                    )
-                    error_msg = f"Error: {str(e)}"
-                    trace.update(level="ERROR", status_message=str(e), output=error_msg)
-                    await asyncio.to_thread(
-                        lanfuse_client.api.dataset_run_items.create,
-                        run_name=run_name,
-                        dataset_item_id=item.id,
-                        trace_id=trace.trace_id,
-                        observation_id=trace.id,
-                    )
-                except Exception as e:
-                    logger.exception(
-                        "Unexpected error for item",
-                        item_id=item_id,
-                        document_id=doc_id,
-                    )
-                    error_msg = f"Error: {str(e)}"
-                    trace.update(level="ERROR", status_message=str(e), output=error_msg)
-                    await asyncio.to_thread(
-                        lanfuse_client.api.dataset_run_items.create,
-                        run_name=run_name,
-                        dataset_item_id=item.id,
-                        trace_id=trace.trace_id,
-                        observation_id=trace.id,
-                    )
-
-    await asyncio.gather(*[_run(item, index) for index, item in enumerate(filtered_items)])
+    try:
+        await asyncio.to_thread(
+            lanfuse_client.run_experiment,
+            name=run_name,
+            data=filtered_items,
+            task=task_fn,
+            evaluators=evaluators or [],
+            max_concurrency=workers,
+        )
+    except Exception as e:
+        logger.exception("Failed to run experiment", run_name=run_name, exc_info=e)
+        
     logger.info("Finished benchmark run", run_name=run_name)

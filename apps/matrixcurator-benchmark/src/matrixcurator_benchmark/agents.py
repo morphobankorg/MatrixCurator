@@ -1,16 +1,20 @@
-# src/benchmark/benchmark_agents.py
 import json
 import pandas as pd
-from lume import structlog
+import structlog
+from typing import Any, Dict
+import functools
 
-from matrixcurator_benchmark.core.decorators import benchmark, parametrize, fixture
-from matrixcurator_benchmark.core.exceptions import FailBenchmark
+from matrixcurator_benchmark.services import run_dataset_benchmark
+from matrixcurator_benchmark.exceptions import FailBenchmark
 
 from matrixcurator.config.main import (
     settings,
     OrchestrationStrategy,
     IntelligenceStrategy,
     ContextStrategy,
+    orchestration_strategy_var,
+    intelligence_strategy_var,
+    context_strategy_var,
 )
 from matrixcurator.modules.graph import build_graph
 
@@ -30,34 +34,48 @@ PERMUTATIONS = [
 ]
 
 
-@fixture(scope="session")
-def docs_dict(df_docs: pd.DataFrame):
-    if "id" in df_docs.columns:
-        return df_docs.set_index("id").to_dict(orient="index")
-    return {}
-
-
-@benchmark(dataset_name="character_states")
-@parametrize("routing, intelligence", PERMUTATIONS)
-async def benchmark_agents(
-    dataset_item, routing, intelligence, docs_dict, langfuse_trace
-):
-    from matrixcurator.config.main import (
-        orchestration_strategy_var,
-        intelligence_strategy_var,
-        context_strategy_var,
-    )
-    
+async def agent_task(
+    *, 
+    item: Any, 
+    routing: str, 
+    intelligence: str, 
+    docs_dict: Dict[str, Any],
+    **kwargs
+) -> str:
     # Override settings for the duration of this run using ContextVar
     orchestration_strategy_var.set(routing)
     intelligence_strategy_var.set(intelligence)
     context_strategy_var.set(ContextStrategy.FULL_CONTEXT)
 
-    input_data = dataset_item.input
-    document_id = input_data.get("document_id")
-    character_index = input_data.get("character_index", 1)
+    input_data = item.input
+    
+    document_id = None
+    character_index = 1
+    pages = None
+    
+    if isinstance(input_data, dict):
+        document_id = input_data.get("document_id")
+        character_index = input_data.get("character_index", 1)
+        pages = input_data.get("pages")
+    elif hasattr(input_data, "document_id"):
+        document_id = getattr(input_data, "document_id", None)
+        character_index = getattr(input_data, "character_index", 1)
+        pages = getattr(input_data, "pages", None)
+    elif isinstance(input_data, str):
+        try:
+            parsed = json.loads(input_data)
+            if isinstance(parsed, dict):
+                document_id = parsed.get("document_id")
+                character_index = parsed.get("character_index", 1)
+                pages = parsed.get("pages")
+        except Exception:
+            pass
+
+    doc_row = docs_dict.get(document_id)
+    if not doc_row:
+        raise ValueError(f"Document {document_id} not found in parquet data")
+
     if not pages or (hasattr(pages, "__len__") and len(pages) == 0):
-        # Resolve all available pages from the parsed text
         pre_parsed_text = doc_row.get("text")
         if isinstance(pre_parsed_text, str):
             try:
@@ -77,7 +95,6 @@ async def benchmark_agents(
                 parses = []
                 
         for parse_obj in parses:
-            # We don't filter by parser in agents.py, just aggregate all known pages across parsers
             parsed_pages = parse_obj.get("pages") or []
             for pg in parsed_pages:
                 if isinstance(pg, dict) and pg.get("page") is not None:
@@ -88,20 +105,15 @@ async def benchmark_agents(
         else:
             pages = [1]
 
-    doc_row = docs_dict.get(document_id)
-    if not doc_row:
-        raise FailBenchmark(f"Document {document_id} not found in parquet data")
-
     file_bytes = doc_row.get("file_bytes")
     filename = doc_row.get("filename", f"doc_{document_id}.pdf")
 
-    # Initialize state
     initial_state = {
         "document": {
             "file_bytes": file_bytes,
             "filename": filename,
             "status": "pending",
-            "inferred_pages": pages,  # Use the explicit pages from the dataset
+            "inferred_pages": pages,
             "total_characters": character_index,
             "discovery_confidence": 0.99,
         },
@@ -121,10 +133,9 @@ async def benchmark_agents(
 
     final_state = await graph.ainvoke(
         initial_state,
-        config={"configurable": {"thread_id": f"benchmark-{dataset_item.id}"}},
+        config={"configurable": {"thread_id": f"benchmark-{getattr(item, 'id', 'unknown')}"}},
     )
 
-    # Extract the resulting states for the requested character
     attempts = final_state.get("characters", {}).get(str(character_index), [])
     if attempts:
         latest = attempts[-1]
@@ -132,6 +143,18 @@ async def benchmark_agents(
             "character": latest.get("character"),
             "states": latest.get("states"),
         }
-        langfuse_trace(json.dumps(extracted_data))
+        return json.dumps(extracted_data)
     else:
-        langfuse_trace("{}")
+        return "{}"
+
+
+async def run_agents_benchmarks(limit: int, workers: int, docs_dict: Dict[str, Any]) -> None:
+    for routing, intelligence in PERMUTATIONS:
+        run_name = f"benchmark_agent_{routing.value}_{intelligence.value}"
+        await run_dataset_benchmark(
+            dataset_name="character_states",
+            run_name=run_name,
+            task_fn=functools.partial(agent_task, routing=routing, intelligence=intelligence, docs_dict=docs_dict),
+            limit=limit,
+            workers=workers
+        )
