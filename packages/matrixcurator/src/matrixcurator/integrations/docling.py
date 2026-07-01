@@ -2,6 +2,8 @@ import asyncio
 import base64
 import logging
 import time
+import concurrent.futures
+import contextvars
 from io import BytesIO
 from typing import List
 
@@ -24,6 +26,84 @@ from matrixcurator.config.main import settings
 logger = logging.getLogger(__name__)
 
 
+def _process_single_input(input_data: VlmEngineInput) -> VlmEngineOutput:
+    session = mcp_session_var.get()
+
+    # Format image and prompt for MCP/LiteLLM
+    img_io = BytesIO()
+    image = input_data.image.copy().convert("RGBA")
+    image.save(img_io, "PNG")
+    image_base64 = base64.b64encode(img_io.getvalue()).decode("utf-8")
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{image_base64}"
+                    },
+                },
+                {"type": "text", "text": input_data.prompt},
+            ],
+        }
+    ]
+
+    request_start_time = time.time()
+    content = ""
+
+    if session is not None:
+        # Execute MCP sampling synchronously
+        try:
+            mcp_result = asyncio.run(
+                sample_message(
+                    session=session,
+                    messages=messages,
+                    temperature=input_data.temperature,
+                    max_tokens=input_data.max_new_tokens,
+                )
+            )
+
+            # Extract text content
+            if hasattr(mcp_result, "content"):
+                for item in mcp_result.content:
+                    if getattr(item, "type", "") == "text":
+                        content += getattr(item, "text", "")
+
+        except MCPSamplingError as e:
+            logger.warning(
+                f"MCP sampling failed, falling back to native LiteLLM: {e}"
+            )
+            session = None  # Trigger fallback
+        except Exception as e:
+            logger.warning(
+                f"Unexpected error during MCP sampling, falling back to native LiteLLM: {e}"
+            )
+            session = None  # Trigger fallback
+
+    if session is None:
+        # Fallback to LiteLLM (Gemini)
+        response = completion(
+            model=settings.vlm_model,
+            messages=messages,
+            temperature=input_data.temperature,
+            max_tokens=input_data.max_new_tokens,
+        )
+        content = response.choices[0].message.content or ""
+
+    generation_time = time.time() - request_start_time
+
+    return VlmEngineOutput(
+        text=content,
+        stop_reason="stop",
+        metadata={
+            "generation_time": generation_time,
+            "num_tokens": 0,
+        },
+    )
+
+
 class McpVlmEngine(ApiVlmEngine):
     """
     Custom VLM Engine for Docling that intercepts calls for MCP sampling.
@@ -31,101 +111,21 @@ class McpVlmEngine(ApiVlmEngine):
     """
 
     def predict_batch(self, input_batch: List[VlmEngineInput]) -> List[VlmEngineOutput]:
-        session = mcp_session_var.get()
         outputs = []
 
-        for input_data in input_batch:
-            # Format image and prompt for MCP/LiteLLM
-            img_io = BytesIO()
-            image = input_data.image.copy().convert("RGBA")
-            image.save(img_io, "PNG")
-            image_base64 = base64.b64encode(img_io.getvalue()).decode("utf-8")
+        # Let's use threads to run multiple VLM inputs concurrently.
+        # This matches upstream ApiVlmEngine pattern for API requests.
+        num_threads = min(len(input_batch) or 1, 8)  # max workers
 
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{image_base64}"
-                            },
-                        },
-                        {"type": "text", "text": input_data.prompt},
-                    ],
-                }
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+            # context.run propagates the contextvars to the thread.
+            futures = [
+                executor.submit(contextvars.copy_context().run, _process_single_input, input_data)
+                for input_data in input_batch
             ]
-
-            request_start_time = time.time()
-            content = ""
-
-            if session is not None:
-                # Execute MCP sampling synchronously
-                try:
-                    try:
-                        loop = asyncio.get_running_loop()
-                    except RuntimeError:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-
-                    if loop.is_running():
-                        logger.warning(
-                            "Cannot run sync MCP sampling inside an active event loop. Falling back to native LiteLLM."
-                        )
-                        raise RuntimeError("Event loop is already running")
-
-                    mcp_result = loop.run_until_complete(
-                        sample_message(
-                            session=session,
-                            messages=messages,
-                            temperature=input_data.temperature,
-                            max_tokens=input_data.max_new_tokens,
-                        )
-                    )
-
-                    # Extract text content
-                    if hasattr(mcp_result, "content"):
-                        for item in mcp_result.content:
-                            if getattr(item, "type", "") == "text":
-                                content += getattr(item, "text", "")
-
-                except MCPSamplingError as e:
-                    logger.warning(
-                        f"MCP sampling failed, falling back to native LiteLLM: {e}"
-                    )
-                    session = None  # Trigger fallback
-                except Exception as e:
-                    logger.warning(
-                        f"Unexpected error during MCP sampling, falling back to native LiteLLM: {e}"
-                    )
-                    session = None  # Trigger fallback
-
-            if session is None:
-                # Fallback to LiteLLM (Gemini)
-                try:
-                    response = completion(
-                        model=settings.vlm_model,
-                        messages=messages,
-                        temperature=input_data.temperature,
-                        max_tokens=input_data.max_new_tokens,
-                    )
-                    content = response.choices[0].message.content or ""
-                except Exception as e:
-                    logger.error(f"LiteLLM fallback failed: {e}")
-                    content = ""
-
-            generation_time = time.time() - request_start_time
-
-            outputs.append(
-                VlmEngineOutput(
-                    text=content,
-                    stop_reason="stop",
-                    metadata={
-                        "generation_time": generation_time,
-                        "num_tokens": 0,
-                    },
-                )
-            )
+            
+            for future in futures:
+                outputs.append(future.result())
 
         return outputs
 
@@ -170,13 +170,24 @@ class McpVlmPipeline(VlmPipeline):
                     url="http://localhost:11434/v1/chat/completions",
                 )
         except ImportError:
-            from docling.datamodel.pipeline_options_vlm_model import ApiVlmOptions
+            from docling.datamodel.pipeline_options_vlm_model import ApiVlmOptions, ResponseFormat
 
             if not isinstance(pipeline_options.vlm_options.engine_options, ApiVlmOptions):
                 pipeline_options.vlm_options.engine_options = ApiVlmOptions(
                     prompt=getattr(pipeline_options.vlm_options, "model_spec", pipeline_options.vlm_options).prompt,
-                    response_format=getattr(pipeline_options.vlm_options, "model_spec", pipeline_options.vlm_options).response_format,
+                    response_format=ResponseFormat.MARKDOWN,
                 )
+                
+        # Force response format to MARKDOWN to ensure Gemini's plain markdown output is correctly parsed 
+        # instead of failing silently when parsed as DOCTAGS.
+        try:
+            from docling.datamodel.pipeline_options_vlm_model import ResponseFormat
+            if hasattr(pipeline_options.vlm_options, "model_spec"):
+                pipeline_options.vlm_options.model_spec.response_format = ResponseFormat.MARKDOWN
+            else:
+                pipeline_options.vlm_options.response_format = ResponseFormat.MARKDOWN
+        except Exception:
+            pass
 
         super()._initialize_new_runtime_system(pipeline_options)
 
