@@ -209,3 +209,66 @@ async def test_retrieve_context_parent_page(mock_get_query, mock_fetch):
     # Deduplication and correct ordering by page number expected
     expected_context = "Full Page 1 Text\n\nFull Page 3 Text"
     assert context == expected_context
+
+@pytest.mark.asyncio
+@patch('matrixcurator.modules.retrieval.services._fetch_embeddings_with_retry', new_callable=AsyncMock)
+@patch('matrixcurator.modules.retrieval.services._get_query_similar_chunks')
+async def test_retrieve_context_with_metadata(mock_get_query, mock_fetch):
+    mock_query = MagicMock()
+    mock_get_query.return_value = mock_query
+    
+    mock_response = MagicMock()
+    mock_response.data = [{"embedding": [0.1, 0.2]}]
+    mock_fetch.return_value = mock_response
+    
+    mock_query.return_value = [
+        {
+            "id": "chunk1",
+            "content": "Short chunk 1",
+            "metadata": {"page": 1, "page_content": "Full Page 1 Text"}
+        },
+        {
+            "id": "chunk2",
+            "content": "Short chunk 2",
+            "metadata": {"page": 1, "page_content": "Full Page 1 Text"}
+        },
+        {
+            "id": "chunk3",
+            "content": "Short chunk 3",
+            "metadata": {"page": 3, "page_content": "Full Page 3 Text"}
+        }
+    ]
+    
+    context = await retrieve_context("query", full_page_retrieval=True, append_page_metadata=True)
+    
+    expected_context = "Full Page 1 Text\n\nFull Page 3 Text\n\n--- METADATA ---\nPages Retrieved: [1, 3]"
+    assert context == expected_context
+
+@pytest.mark.asyncio
+@patch('matrixcurator.modules.retrieval.services._fetch_embeddings_with_retry', new_callable=AsyncMock)
+@patch('matrixcurator.modules.retrieval.services._get_query_similar_chunks')
+async def test_retrieve_context_chunk_with_metadata(mock_get_query, mock_fetch):
+    mock_query = MagicMock()
+    mock_get_query.return_value = mock_query
+    
+    mock_response = MagicMock()
+    mock_response.data = [{"embedding": [0.1, 0.2]}]
+    mock_fetch.return_value = mock_response
+    
+    mock_query.return_value = [
+        {
+            "id": "chunk1",
+            "content": "Result 1",
+            "metadata": {"page": 2}
+        },
+        {
+            "id": "chunk2",
+            "content": "Result 2",
+            "metadata": {"page": 5}
+        },
+    ]
+    
+    context = await retrieve_context("query", full_page_retrieval=False, append_page_metadata=True)
+    
+    expected_context = "Result 1\n\nResult 2\n\n--- METADATA ---\nPages Retrieved: [2, 5]"
+    assert context == expected_context
