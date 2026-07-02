@@ -90,7 +90,14 @@ def auto_ingest_vectors(df_docs: pd.DataFrame, no_cache: bool = False) -> None:
         raw_pages = row.get("pages")
         pages = None
 
-        if pd.notna(raw_pages):
+        def is_valid_pages(val):
+            if val is None:
+                return False
+            if isinstance(val, float) and pd.isna(val):
+                return False
+            return True
+
+        if is_valid_pages(raw_pages):
             if isinstance(raw_pages, str):
                 try:
                     parsed = ast.literal_eval(raw_pages)
@@ -102,6 +109,13 @@ def auto_ingest_vectors(df_docs: pd.DataFrame, no_cache: bool = False) -> None:
                     )
             elif isinstance(raw_pages, (list, np.ndarray)):
                 pages = [int(p) for p in raw_pages]
+
+        logger.info(
+            "Parsed relevant pages for ingestion",
+            document_id=doc_id_str,
+            raw_pages=raw_pages,
+            parsed_pages=pages,
+        )
 
         try:
             try:
