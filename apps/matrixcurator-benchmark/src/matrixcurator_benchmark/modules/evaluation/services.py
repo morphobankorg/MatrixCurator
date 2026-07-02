@@ -29,7 +29,8 @@ def setup_evaluators(langfuse_repository: Any, client: Langfuse) -> None:
         "CRITICAL INSTRUCTIONS:\n"
         "1. The `Expected Output` is JSON containing a morphological character's index, name, and its states.\n"
         "2. The `Extracted Output` is raw, unstructured text (either from a full page parse or a retrieved vector chunk). DO NOT penalize for lacking JSON structure.\n"
-        "3. Ignore OCR artifacts, minor typos, or formatting errors in the `Extracted Output` as long as the semantic meaning remains identical.\n\n"
+        "3. Ignore OCR artifacts, minor typos, or formatting errors in the `Extracted Output` as long as the semantic meaning remains identical.\n"
+        "4. IGNORE the '--- METADATA ---' block at the end of the Extracted Output. It is for telemetry only and should not impact your scoring.\n\n"
         "SCORING RUBRIC:\n"
         '- "Complete Recall": The extracted text contains the exact character name (or clear synonym) AND all of its defined states perfectly.\n'
         '- "Partial Recall": The extracted text contains the character name but is missing 1 or more states, OR the states are present but the character name is cut off/missing.\n'
