@@ -114,6 +114,7 @@ async def retrieval_task(*, item: Any, parser_name: str, **kwargs) -> Any:
         document_id=document_id,
         parser_name=query_parser_name,
         full_page_retrieval=full_page_retrieval,
+        append_page_metadata=True,
     )
 
     return retrieved_context

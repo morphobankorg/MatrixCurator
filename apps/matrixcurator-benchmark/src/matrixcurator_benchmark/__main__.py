@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import langfuse
 import structlog
+import litellm
 
 from matrixcurator_benchmark.setup import bootstrap_environment
 from matrixcurator_benchmark.tools import run_tools_benchmarks
@@ -67,6 +68,7 @@ async def run_main():
 
 
 def main():
+    litellm.telemetry = False
     asyncio.run(run_main())
 
 
