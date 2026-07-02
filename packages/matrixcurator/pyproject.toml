@@ -25,6 +25,7 @@ dependencies = [
     "dspy",
     "openinference-instrumentation-dspy",
     "mcp>=1.2.0",
+    "sqlite-vec",
 ]
 
 [build-system]
