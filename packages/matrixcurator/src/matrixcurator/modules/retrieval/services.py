@@ -132,6 +132,7 @@ async def retrieve_context(
     document_id: Optional[str] = None,
     parser_name: Optional[str] = None,
     full_page_retrieval: bool = False,
+    append_page_metadata: bool = False,
 ) -> str:
     """
     Embeds the query, searches the active backend, and returns concatenated context.
@@ -174,10 +175,23 @@ async def retrieve_context(
 
         # Sort by keys (if possible) to ensure consistent order
         sorted_keys = sorted(list(pages.keys()), key=lambda x: (isinstance(x, str), x))
+        
+        pages_retrieved = [k for k in sorted_keys if isinstance(k, int)]
         context = "\n\n".join([pages[k] for k in sorted_keys])
     else:
         # Concatenate the contents of the retrieved chunks
+        retrieved_page_numbers = set()
+        for chunk in similar_chunks:
+            page = chunk.get("metadata", {}).get("page")
+            if page is not None and isinstance(page, int):
+                retrieved_page_numbers.add(page)
+        pages_retrieved = sorted(list(retrieved_page_numbers))
+        
         context = "\n\n".join([chunk["content"] for chunk in similar_chunks])
+
+    if append_page_metadata:
+        pages_report = f"\n\n--- METADATA ---\nPages Retrieved: {pages_retrieved}"
+        context += pages_report
 
     return context
 
@@ -218,6 +232,10 @@ async def vectorize_document(
         await embed_and_store_chunks(all_chunks)
 
         if parser == "docling" and pages and isinstance(pages, list):
+            import structlog
+            logger = structlog.get_logger(__name__)
+            logger.info("Ingesting docling_relevant subset", document_id=document_id, target_pages=pages)
+            
             relevant_chunks = []
             for page_obj in pages_data:
                 if not isinstance(page_obj, dict):
