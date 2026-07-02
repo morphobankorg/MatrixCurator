@@ -4,11 +4,10 @@ from matrixcurator.client import MatrixCuratorClient
 
 @pytest.fixture
 def client():
-    with patch("matrixcurator.client.setup_logging"):
-        return MatrixCuratorClient(app_name="test")
+    return MatrixCuratorClient(app_name="test")
 
 @patch("matrixcurator.client.parse_document")
-@patch("matrixcurator.client.capture_event")
+@patch("matrixcurator.client.posthog.capture")
 def test_parse_document(mock_capture, mock_parse, client):
     mock_parse.return_value = "parsed text"
     
@@ -16,11 +15,11 @@ def test_parse_document(mock_capture, mock_parse, client):
     
     assert result == "parsed text"
     mock_parse.assert_called_once_with(b"content", "test.pdf")
-    mock_capture.assert_called_once_with("document_parsed", {"filename": "test.pdf"})
+    mock_capture.assert_called_once_with("anonymous_user", "document_parsed", properties={"filename": "test.pdf"})
 
 @pytest.mark.asyncio
 @patch("matrixcurator.client.agent_graph.ainvoke", new_callable=AsyncMock)
-@patch("matrixcurator.client.capture_event")
+@patch("matrixcurator.client.posthog.capture")
 async def test_extract_characters_success(mock_capture, mock_ainvoke, client):
     mock_ainvoke.return_value = {
         "extracted_data": {"character_index": 1, "states": {"0": "A"}},
@@ -35,7 +34,7 @@ async def test_extract_characters_success(mock_capture, mock_ainvoke, client):
     mock_capture.assert_called_once()
 
 @patch("matrixcurator.client.generate_document")
-@patch("matrixcurator.client.capture_event")
+@patch("matrixcurator.client.posthog.capture")
 def test_generate_nexus(mock_capture, mock_generate, client):
     mock_generate.return_value = b"updated nexus"
     
@@ -43,4 +42,4 @@ def test_generate_nexus(mock_capture, mock_generate, client):
     
     assert result == b"updated nexus"
     mock_generate.assert_called_once_with(original_nexus="original", extracted_states=[{"character_index": 1}])
-    mock_capture.assert_called_once_with("nexus_generated")
+    mock_capture.assert_called_once_with("anonymous_user", "nexus_generated")

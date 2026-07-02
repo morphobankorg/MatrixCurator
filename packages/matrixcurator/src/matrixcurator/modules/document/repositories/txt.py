@@ -1,5 +1,6 @@
 from matrixcurator.exceptions import DocumentParseError
 
+
 def read_txt(file_content: bytes, **kwargs) -> str:
     try:
         return file_content.decode("utf-8")

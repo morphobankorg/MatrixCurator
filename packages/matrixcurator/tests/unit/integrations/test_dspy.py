@@ -34,8 +34,8 @@ def test_configure_dspy(mock_instrumentor):
 @patch("dspy.LM.aforward")
 async def test_mcp_aware_lm_aforward_with_session(mock_super_aforward, mock_mcp_session):
     # Arrange
-    configure_dspy("gpt-4")
-    lm = dspy.settings.lm
+    from matrixcurator.integrations.dspy import MCPAwareLM
+    lm = MCPAwareLM("gpt-4")
     
     token = mcp_session_var.set(mock_mcp_session)
     
@@ -54,8 +54,8 @@ async def test_mcp_aware_lm_aforward_with_session(mock_super_aforward, mock_mcp_
 @patch("dspy.LM.aforward")
 async def test_mcp_aware_lm_aforward_without_session(mock_super_aforward):
     # Arrange
-    configure_dspy("gpt-4")
-    lm = dspy.settings.lm
+    from matrixcurator.integrations.dspy import MCPAwareLM
+    lm = MCPAwareLM("gpt-4")
     
     mock_super_aforward.return_value = {"choices": [{"message": {"content": "Native"}}]}
     
@@ -70,8 +70,8 @@ async def test_mcp_aware_lm_aforward_without_session(mock_super_aforward):
 @patch("dspy.LM.aforward")
 async def test_mcp_aware_lm_aforward_fallback(mock_super_aforward, mock_mcp_session):
     # Arrange
-    configure_dspy("gpt-4")
-    lm = dspy.settings.lm
+    from matrixcurator.integrations.dspy import MCPAwareLM
+    lm = MCPAwareLM("gpt-4")
     
     mock_mcp_session.create_message.side_effect = Exception("MCP Error")
     token = mcp_session_var.set(mock_mcp_session)

@@ -46,7 +46,7 @@ async def test_sample_message_with_images():
     call_args = mock_session.create_message.call_args[1]
     expected_content = [
         {"type": "text", "text": "What is this?"},
-        {"type": "image", "data": "iVBORw0KGgo=", "mimeType": "png"}
+        {"type": "image", "data": "iVBORw0KGgo=", "mimeType": "image/png"}
     ]
     assert call_args["messages"][0]["content"] == expected_content
 

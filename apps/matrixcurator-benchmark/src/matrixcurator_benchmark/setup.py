@@ -74,7 +74,7 @@ async def bootstrap_environment(
     if targets and ("retrieval" in targets or "agents" in targets):
         logger.info("Auto ingesting vectors...")
         df_docs = pd.DataFrame(parsed_docs)
-        retrieval_services.auto_ingest_vectors(df_docs)
+        retrieval_services.auto_ingest_vectors(df_docs, no_cache=no_cache)
     else:
         logger.info("Skipping vector ingestion based on targets.")
     

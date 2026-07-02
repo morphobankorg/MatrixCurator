@@ -34,14 +34,13 @@ async def preparse_documents(
     if not docs:
         return docs
 
-    if limit:
-        docs = docs[:limit]
+    process_docs = docs[:limit] if limit else docs
 
     needs_save = False
 
     if no_cache:
         logger.info("no_cache is True: Resetting text field in all loaded documents.")
-        for row in docs:
+        for row in process_docs:
             row["text"] = None
         needs_save = True
         try:
@@ -51,13 +50,13 @@ async def preparse_documents(
         except Exception as e:
             logger.warning(f"Failed to save reset documents to {file_path}: {e}")
 
-    for row in docs:
+    for row in process_docs:
         if "text" not in row:
             row["text"] = None
 
     needs_save = False
 
-    for row in tqdm(docs, desc="Pre-parsing documents"):
+    for row in tqdm(process_docs, desc="Pre-parsing documents"):
         document_id = row.get("id", row.get("document_id"))
         mime_type = row.get("mime_type", "")
         filename = row.get("filename", "")
@@ -247,7 +246,7 @@ async def preparse_documents(
         parquet_repository.write_documents(docs, file_path)
         logger.info(f"Saved parsed documents to {file_path}")
     
-    return docs
+    return process_docs
 
 
 async def sync_datasets(

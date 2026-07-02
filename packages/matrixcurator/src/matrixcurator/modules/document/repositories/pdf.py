@@ -1,6 +1,7 @@
 import fitz  # PyMuPDF
 from matrixcurator.exceptions import DocumentParseError
 
+
 def read_pdf(file_content: bytes, **kwargs) -> str:
     try:
         doc = fitz.open(stream=file_content, filetype="pdf")

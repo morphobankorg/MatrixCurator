@@ -15,22 +15,17 @@ dependencies = [
     "llama-index-core",
     "llama-parse",
     "llama-index-readers-file",
-    "langfuse",
-    "sentry-sdk",
     "pydantic-settings>=2.10.1",
     "langgraph>=1.2.4",
     "pydantic>=2.13.4",
     "litellm>=1.87.0",
-    "posthog>=7.17.0",
     "structlog>=25.5.0",
-    "opentelemetry-api>=1.42.1",
-    "opentelemetry-sdk>=1.42.1",
-    "opentelemetry-exporter-otlp>=1.42.1",
+    "lume @ git+https://github.com/morphobankorg/lume-python.git",
     "docling",
     "dspy",
     "openinference-instrumentation-dspy",
     "mcp>=1.2.0",
-    "python-logging @ file:///${PROJECT_ROOT}/../../.agents/skills/python-logging/modules/python-logging"
+    "sqlite-vec",
 ]
 
 [build-system]

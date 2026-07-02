@@ -6,6 +6,7 @@ from matrixcurator.modules.document.repositories.txt import read_txt
 from matrixcurator.modules.document.repositories.nexus import write_nexus
 from matrixcurator.exceptions import DocumentParseError
 
+
 def parse_document(file_content: bytes, filename: str, **kwargs) -> str:
     filename = filename.lower()
     if filename.endswith(".pdf"):
@@ -17,6 +18,8 @@ def parse_document(file_content: bytes, filename: str, **kwargs) -> str:
     else:
         raise DocumentParseError("Unsupported file type")
 
-def generate_document(original_nexus: str, extracted_states: List[Dict[str, Any]], **kwargs) -> bytes:
-    return write_nexus(original_nexus, extracted_states, **kwargs)
 
+def generate_document(
+    original_nexus: str, extracted_states: List[Dict[str, Any]], **kwargs
+) -> bytes:
+    return write_nexus(original_nexus, extracted_states, **kwargs)
